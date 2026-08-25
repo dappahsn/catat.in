@@ -44,10 +44,13 @@ export function DesktopNavbar() {
     <header className="sticky top-0 z-50 hidden md:block bg-[var(--nav-bg)] border-b border-[var(--nav-border)]">
       <div className="max-w-6xl mx-auto px-6 flex items-center h-16 gap-8">
         {/* Logo */}
-        <div className="flex items-center gap-2 text-[var(--primary)] font-bold text-lg select-none">
-          <span className="text-xl" aria-hidden="true">💰</span>
-          Finance
-        </div>
+        <NavLink to="/transactions" className="flex items-center select-none focus:outline-none" aria-label="catat.in">
+          <img
+            src="/icons/logo-text.png"
+            alt="catat.in"
+            className="h-8 w-auto object-contain"
+          />
+        </NavLink>
 
         {/* Nav links */}
         <nav aria-label="Navigasi utama" className="flex items-center gap-1">

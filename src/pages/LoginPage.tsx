@@ -38,9 +38,13 @@ export function LoginPage() {
       {/* Card */}
       <div className="bg-[var(--surface)] rounded-3xl shadow-[var(--card-shadow)] p-8 text-center border border-[var(--border)]">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <span className="text-4xl select-none" aria-hidden="true">💰</span>
-          <span className="text-2xl font-bold text-[var(--text-primary)]">Finance</span>
+        <div className="flex flex-col items-center justify-center mb-6">
+          <img
+            src="/icons/logo.png"
+            alt="catat.in"
+            className="w-16 h-16 object-contain mb-3"
+          />
+          <span className="text-2xl font-bold text-[var(--text-primary)]">catat.in</span>
         </div>
 
         <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">

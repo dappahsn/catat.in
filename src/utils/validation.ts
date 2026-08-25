@@ -54,7 +54,7 @@ export function validateBackupJson(data: unknown): { valid: boolean; error?: str
   const d = data as Record<string, unknown>
   if (!d.metadata || typeof d.metadata !== 'object') return { valid: false, error: 'Metadata backup tidak ditemukan' }
   const meta = d.metadata as Record<string, unknown>
-  if (meta.app !== 'finance-web-app') return { valid: false, error: 'File backup tidak dikenali' }
+  if (meta.app !== 'catat-in-app' && meta.app !== 'finance-web-app') return { valid: false, error: 'File backup tidak dikenali' }
   if (typeof meta.version !== 'number') return { valid: false, error: 'Versi backup tidak valid' }
   if (!Array.isArray(d.accounts)) return { valid: false, error: 'Data rekening tidak valid' }
   if (!Array.isArray(d.transactions)) return { valid: false, error: 'Data transaksi tidak valid' }

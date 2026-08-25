@@ -1,4 +1,4 @@
-# 💰 Personal Finance Web App (MVP)
+# 💰 catat.in — Personal Finance Web App (MVP)
 
 Aplikasi pencatatan keuangan pribadi yang sangat ringan, cepat, responsif, mobile-first, dan installable sebagai PWA.
 

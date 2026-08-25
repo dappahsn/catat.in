@@ -42,7 +42,7 @@ export function exportTransactionsToCSV(transactions: Transaction[], locale: str
   const link = document.createElement('a')
   const today = new Date().toISOString().split('T')[0]
   link.href = url
-  link.download = `finance-export-${today}.csv`
+  link.download = `catat-in-export-${today}.csv`
   link.click()
   URL.revokeObjectURL(url)
 }

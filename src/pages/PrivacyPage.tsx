@@ -22,7 +22,7 @@ export function PrivacyPage() {
         <div className="space-y-4 text-sm text-[var(--text-secondary)] leading-relaxed">
           <p>
             Privasi Anda sangat penting bagi kami. Kebijakan Privasi ini menjelaskan bagaimana aplikasi
-            <strong> Finance</strong> mengumpulkan, menggunakan, dan melindungi data pribadi Anda.
+            <strong> catat.in</strong> mengumpulkan, menggunakan, dan melindungi data pribadi Anda.
           </p>
 
           <h2 className="text-base font-semibold text-[var(--text-primary)] pt-2">1. Pengumpulan Data</h2>

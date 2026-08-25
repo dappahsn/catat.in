@@ -25,7 +25,7 @@ function RootRedirect() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <div className="flex flex-col items-center gap-3">
-          <span className="text-4xl select-none" aria-hidden="true">💰</span>
+          <img src="/icons/logo.png" alt="catat.in" className="w-12 h-12 object-contain animate-pulse" />
           <p className="text-sm font-medium text-[var(--text-muted)]">Memuat aplikasi...</p>
         </div>
       </div>

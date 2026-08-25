@@ -21,7 +21,7 @@ export function TermsPage() {
 
         <div className="space-y-4 text-sm text-[var(--text-secondary)] leading-relaxed">
           <p>
-            Dengan menggunakan aplikasi <strong>Finance</strong>, Anda menyetujui syarat dan ketentuan penggunaan berikut ini.
+            Dengan menggunakan aplikasi <strong>catat.in</strong>, Anda menyetujui syarat dan ketentuan penggunaan berikut ini.
           </p>
 
           <h2 className="text-base font-semibold text-[var(--text-primary)] pt-2">1. Penggunaan Layanan</h2>
@@ -31,7 +31,7 @@ export function TermsPage() {
 
           <h2 className="text-base font-semibold text-[var(--text-primary)] pt-2">2. Batasan Tanggung Jawab</h2>
           <p>
-            Aplikasi Finance tidak menyediakan layanan perbankan, penasihat keuangan berlisensi, atau jaminan atas keputusan finansial yang Anda buat berdasarkan rekap atau kalkulasi pada aplikasi ini.
+            Aplikasi catat.in tidak menyediakan layanan perbankan, penasihat keuangan berlisensi, atau jaminan atas keputusan finansial yang Anda buat berdasarkan rekap atau kalkulasi pada aplikasi ini.
           </p>
 
           <h2 className="text-base font-semibold text-[var(--text-primary)] pt-2">3. Perubahan Layanan</h2>

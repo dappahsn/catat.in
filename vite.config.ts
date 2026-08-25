@@ -10,10 +10,10 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons/*.png'],
+      includeAssets: ['icons/*.png'],
       manifest: {
-        name: 'Finance — Catatan Keuangan',
-        short_name: 'Finance',
+        name: 'catat.in — Catatan Keuangan',
+        short_name: 'catat.in',
         description: 'Aplikasi pencatatan keuangan pribadi yang ringan dan cepat.',
         theme_color: '#2563EB',
         background_color: '#ffffff',
@@ -22,9 +22,8 @@ export default defineConfig({
         scope: '/',
         start_url: '/',
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/icons/logo.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icons/logo.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {

@@ -39,7 +39,7 @@ export async function createBackup(userId: string): Promise<void> {
   const link = document.createElement('a')
   const dateStr = new Date().toISOString().split('T')[0]
   link.href = url
-  link.download = `finance-backup-${dateStr}.json`
+  link.download = `catat-in-backup-${dateStr}.json`
   link.click()
   URL.revokeObjectURL(url)
 }

@@ -12,7 +12,7 @@ export function ProtectedRoute({ redirectTo = '/login' }: ProtectedRouteProps) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <div className="flex flex-col items-center gap-3">
-          <span className="text-3xl" aria-hidden="true">💰</span>
+          <img src="/icons/logo.png" alt="catat.in" className="w-10 h-10 object-contain animate-pulse" />
           <p className="text-sm text-[var(--text-muted)]">Memuat...</p>
         </div>
       </div>

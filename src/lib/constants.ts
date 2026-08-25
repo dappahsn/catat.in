@@ -1,8 +1,8 @@
 // Application-wide constants
 
-export const APP_NAME = 'Finance'
+export const APP_NAME = 'catat.in'
 export const APP_VERSION = '1.0.0'
-export const BACKUP_APP_ID = 'finance-web-app'
+export const BACKUP_APP_ID = 'catat-in-app'
 export const BACKUP_VERSION = 1
 export const TRANSACTIONS_PER_PAGE = 20
 
