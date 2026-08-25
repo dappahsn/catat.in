@@ -19,10 +19,6 @@ function applyTheme(theme: ThemeMode) {
   }
 }
 
-function applyAccent(color: AccentColor) {
-  document.documentElement.setAttribute('data-accent', color)
-}
-
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('catatin_theme')
@@ -33,11 +29,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     applyTheme(theme)
     localStorage.setItem('catatin_theme', theme)
+    // Remove any legacy blue accent
+    document.documentElement.removeAttribute('data-accent')
+    localStorage.removeItem('catatin_accent')
   }, [theme])
-
-  useEffect(() => {
-    applyAccent(accentColor)
-  }, [accentColor])
 
   const setTheme = (t: ThemeMode) => {
     const targetTheme = t === 'dark' ? 'dark' : 'light'
@@ -47,7 +42,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setAccentColor = (c: AccentColor) => {
     setAccentColorState(c)
-    applyAccent(c)
   }
 
   return (

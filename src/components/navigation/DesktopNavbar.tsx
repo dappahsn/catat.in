@@ -45,7 +45,7 @@ export function DesktopNavbar() {
 
   return (
     <header
-      className={`sticky top-0 z-40 bg-white/95 dark:bg-[#0d0f12]/95 backdrop-blur border-b border-slate-200/80 dark:border-[#22242a] transition-colors ${
+      className={`sticky top-0 z-40 bg-white/95 dark:bg-[#0d0f12]/95 backdrop-blur border-b border-slate-200/80 dark:border-[#22242a] ${
         isSettingsPage ? 'hidden md:block' : 'block'
       }`}
     >
@@ -60,17 +60,17 @@ export function DesktopNavbar() {
         </NavLink>
 
         {/* Nav links (Desktop only) */}
-        <nav aria-label="Navigasi utama" className="hidden md:flex items-center gap-1">
+        <nav aria-label="Navigasi utama" className="hidden md:flex items-center gap-1.5">
           {navItems.map(({ to, icon: Icon, labelKey }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
                 [
-                  'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-fast',
+                  'flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150',
                   isActive
-                    ? 'text-[var(--primary)] bg-[var(--primary-light)]'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)]',
+                    ? 'text-[#064e3b] dark:text-[#86efac] bg-[#a7f3d0]/60 dark:bg-[#064e3b] font-semibold shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#22242a]',
                 ].join(' ')
               }
             >
