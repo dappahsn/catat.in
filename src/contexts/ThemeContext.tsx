@@ -10,14 +10,9 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-function getSystemTheme(): 'light' | 'dark' {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
 function applyTheme(theme: ThemeMode) {
   const root = document.documentElement
-  const resolved = theme === 'system' ? getSystemTheme() : theme
-  if (resolved === 'dark') {
+  if (theme === 'dark') {
     root.classList.add('dark')
   } else {
     root.classList.remove('dark')
@@ -29,29 +24,25 @@ function applyAccent(color: AccentColor) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>('system')
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('catatin_theme')
+    return (saved === 'dark' || saved === 'light') ? saved : 'light'
+  })
   const [accentColor, setAccentColorState] = useState<AccentColor>('blue')
 
   useEffect(() => {
     applyTheme(theme)
+    localStorage.setItem('catatin_theme', theme)
   }, [theme])
 
   useEffect(() => {
     applyAccent(accentColor)
   }, [accentColor])
 
-  // Listen for system theme change
-  useEffect(() => {
-    if (theme !== 'system') return
-    const mql = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = () => applyTheme('system')
-    mql.addEventListener('change', handler)
-    return () => mql.removeEventListener('change', handler)
-  }, [theme])
-
   const setTheme = (t: ThemeMode) => {
-    setThemeState(t)
-    applyTheme(t)
+    const targetTheme = t === 'dark' ? 'dark' : 'light'
+    setThemeState(targetTheme)
+    applyTheme(targetTheme)
   }
 
   const setAccentColor = (c: AccentColor) => {

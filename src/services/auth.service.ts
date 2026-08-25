@@ -30,7 +30,7 @@ export async function ensureUserProfile(user: User): Promise<void> {
     await supabase.from('user_settings').insert({
       user_id: userId,
       language: 'id',
-      theme: 'system',
+      theme: 'light',
       accent_color: 'blue',
       currency: 'IDR',
     })

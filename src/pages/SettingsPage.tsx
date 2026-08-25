@@ -6,7 +6,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { getUserSettings, updateUserSettings, getReminder, updateReminder } from '@/services/settings.service'
 import { getCategories, deleteCategory } from '@/services/categories.service'
 import { createBackup, previewBackup, restoreBackup, deleteAllData } from '@/services/backup.service'
-import type { UserSettings, AccentColor, ThemeMode, Language } from '@/types/settings'
+import type { UserSettings, ThemeMode, Language } from '@/types/settings'
 import type { BackupData, BackupPreview } from '@/types/backup'
 import type { Category } from '@/types/category'
 import { Button } from '@/components/ui/Button'
@@ -14,7 +14,6 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { CategoryForm } from '@/components/categories/CategoryForm'
-import { ACCENT_COLORS } from '@/lib/constants'
 import { ensureUserProfile } from '@/services/auth.service'
 import {
   Bell,
@@ -29,21 +28,16 @@ import {
   Pencil,
   Check,
   Clock,
+  Sun,
+  Moon,
 } from 'lucide-react'
-
-const ACCENT_COLOR_INFO: Record<AccentColor, { label: string; hsl: string }> = {
-  blue:   { label: 'Biru',   hsl: 'hsl(220 91% 48%)' },
-  green:  { label: 'Hijau',  hsl: 'hsl(142 71% 38%)' },
-  purple: { label: 'Ungu',   hsl: 'hsl(262 83% 54%)' },
-  orange: { label: 'Oranye', hsl: 'hsl(25 95% 45%)' },
-  red:    { label: 'Merah',  hsl: 'hsl(0 84% 48%)' },
-}
 
 export function SettingsPage() {
   const { user, signOut } = useAuth()
-  const { theme, accentColor, setTheme, setAccentColor } = useTheme()
+  const { theme, setTheme } = useTheme()
   const { language, setLanguage } = useI18n()
   const { showToast } = useToast()
+
 
 
   const [loading, setLoading] = useState(true)
@@ -106,7 +100,6 @@ export function SettingsPage() {
         setCategories(c)
         if (s) {
           setTheme(s.theme)
-          setAccentColor(s.accent_color)
           setLanguage(s.language)
         }
         if (r) {
@@ -136,11 +129,6 @@ export function SettingsPage() {
   const handleThemeChange = (t: ThemeMode) => {
     setTheme(t)
     saveSetting({ theme: t })
-  }
-
-  const handleAccentChange = (c: AccentColor) => {
-    setAccentColor(c)
-    saveSetting({ accent_color: c })
   }
 
   const handleLanguageChange = (l: Language) => {
@@ -296,9 +284,9 @@ export function SettingsPage() {
   const email = user?.email ?? 'user@example.com'
 
   const themeLabels: Record<ThemeMode, string> = {
-    system: 'System',
-    light: 'Light',
-    dark: 'Dark',
+    light: 'Terang',
+    dark: 'Gelap',
+    system: 'Terang',
   }
 
   const languageLabels: Record<Language, string> = {
@@ -564,56 +552,60 @@ export function SettingsPage() {
       {/* MODALS & DIALOGS */}
       {/* ========================================================================= */}
 
-      {/* --- Theme & Accent Color Modal --- */}
+      {/* --- Theme Modal --- */}
       <Modal
         isOpen={showThemeModal}
         onClose={() => setShowThemeModal(false)}
-        title="Pilih Tema & Tampilan"
+        title="Pilih Tema"
       >
-        <div className="space-y-5">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 mb-2">Mode Tampilan</p>
-            <div className="grid grid-cols-3 gap-2">
-              {(['system', 'light', 'dark'] as const).map((tMode) => (
-                <button
-                  key={tMode}
-                  onClick={() => handleThemeChange(tMode)}
-                  className={[
-                    'py-3 px-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition-all',
-                    theme === tMode
-                      ? 'border-[var(--primary)] bg-[var(--primary-light)] text-[var(--primary)] shadow-sm'
-                      : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300',
-                  ].join(' ')}
-                >
-                  <span className="capitalize">{tMode === 'system' ? 'Sistem' : tMode === 'light' ? 'Terang' : 'Gelap'}</span>
-                  {theme === tMode && <Check size={14} />}
-                </button>
-              ))}
+        <div className="space-y-2.5">
+          <button
+            onClick={() => {
+              handleThemeChange('light')
+              setShowThemeModal(false)
+            }}
+            className={[
+              'w-full p-3.5 rounded-xl border flex items-center justify-between text-sm font-semibold transition-all',
+              theme === 'light'
+                ? 'border-[var(--primary)] bg-[var(--primary-light)] text-[var(--primary)] shadow-2xs'
+                : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200',
+            ].join(' ')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+                <Sun size={18} />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-sm">Terang (Light)</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">Tema bawaan aplikasi</p>
+              </div>
             </div>
-          </div>
+            {theme === 'light' && <Check size={18} />}
+          </button>
 
-          <div>
-            <p className="text-xs font-semibold text-slate-500 mb-2">Warna Utama</p>
-            <div className="flex gap-3 justify-center pt-1">
-              {ACCENT_COLORS.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => handleAccentChange(c)}
-                  className={[
-                    'w-10 h-10 rounded-full transition-all focus-visible:ring-2 focus-visible:ring-offset-2',
-                    accentColor === c ? 'scale-110 ring-2 ring-offset-2 ring-[var(--primary)] shadow' : 'opacity-75 hover:opacity-100',
-                  ].join(' ')}
-                  style={{ backgroundColor: ACCENT_COLOR_INFO[c as AccentColor].hsl }}
-                  aria-label={ACCENT_COLOR_INFO[c as AccentColor].label}
-                  aria-pressed={accentColor === c}
-                />
-              ))}
+          <button
+            onClick={() => {
+              handleThemeChange('dark')
+              setShowThemeModal(false)
+            }}
+            className={[
+              'w-full p-3.5 rounded-xl border flex items-center justify-between text-sm font-semibold transition-all',
+              theme === 'dark'
+                ? 'border-[var(--primary)] bg-[var(--primary-light)] text-[var(--primary)] shadow-2xs'
+                : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200',
+            ].join(' ')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <Moon size={18} />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-sm">Gelap (Dark)</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">Nyaman di mata untuk kondisi minim cahaya</p>
+              </div>
             </div>
-          </div>
-
-          <Button fullWidth onClick={() => setShowThemeModal(false)}>
-            Selesai
-          </Button>
+            {theme === 'dark' && <Check size={18} />}
+          </button>
         </div>
       </Modal>
 
