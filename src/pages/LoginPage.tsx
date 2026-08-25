@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Navigate, Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { useI18n } from '@/contexts/I18nContext'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { AlertCircle, ExternalLink } from 'lucide-react'
 
 export function LoginPage() {
   const { session, loading, signInWithGoogle } = useAuth()
+  const { t, language } = useI18n()
   const [signingIn, setSigningIn] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -15,7 +17,11 @@ export function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     if (!isSupabaseConfigured) {
-      setError('Koneksi Supabase belum diatur. Harap masukkan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY yang valid pada file .env.')
+      setError(
+        language === 'en'
+          ? 'Supabase connection is not configured. Please set valid VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.'
+          : 'Koneksi Supabase belum diatur. Harap masukkan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY yang valid pada file .env.'
+      )
       return
     }
 
@@ -24,7 +30,9 @@ export function LoginPage() {
       setError(null)
       await signInWithGoogle()
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal masuk dengan Google. Coba lagi.'
+      const msg = err instanceof Error
+        ? err.message
+        : (language === 'en' ? 'Failed to sign in with Google. Try again.' : 'Gagal masuk dengan Google. Coba lagi.')
       setError(msg)
       setSigningIn(false)
     }
@@ -50,7 +58,7 @@ export function LoginPage() {
 
         {/* Tagline */}
         <p className="text-[15px] sm:text-base text-slate-700 dark:text-slate-300 font-normal leading-relaxed mb-8">
-          Kelola keuangan dengan lebih mudah.
+          {t('auth.tagline')}
         </p>
 
         {/* Supabase Notice if not configured */}
@@ -60,10 +68,10 @@ export function LoginPage() {
               <AlertCircle size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
               <div className="text-xs text-[var(--text-primary)] space-y-1.5">
                 <p className="font-semibold text-amber-600 dark:text-amber-400">
-                  Supabase Belum Terhubung
+                  {language === 'en' ? 'Supabase Not Connected' : 'Supabase Belum Terhubung'}
                 </p>
                 <p className="text-[var(--text-secondary)] leading-relaxed">
-                  File <code className="px-1 py-0.5 rounded bg-[var(--surface-2)] text-[11px]">.env</code> masih menggunakan konfigurasi dummy.
+                  {language === 'en' ? 'The .env file is still using dummy configuration.' : 'File .env masih menggunakan konfigurasi dummy.'}
                 </p>
                 <a
                   href="https://supabase.com/dashboard"
@@ -71,7 +79,7 @@ export function LoginPage() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--primary)] hover:underline pt-0.5"
                 >
-                  Buka Supabase Dashboard <ExternalLink size={12} />
+                  {language === 'en' ? 'Open Supabase Dashboard' : 'Buka Supabase Dashboard'} <ExternalLink size={12} />
                 </a>
               </div>
             </div>
@@ -98,7 +106,7 @@ export function LoginPage() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              <span>Memuat...</span>
+              <span>{t('auth.loading')}</span>
             </>
           ) : (
             <>
@@ -108,7 +116,7 @@ export function LoginPage() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
-              <span>Continue with Google</span>
+              <span>{language === 'en' ? 'Continue with Google' : 'Masuk dengan Google'}</span>
             </>
           )}
         </button>
@@ -120,14 +128,14 @@ export function LoginPage() {
           to="/privacy"
           className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
         >
-          Privacy Policy
+          {t('auth.privacy')}
         </Link>
         <span className="text-slate-300 dark:text-slate-600 select-none" aria-hidden="true">·</span>
         <Link
           to="/terms"
           className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
         >
-          Terms of Service
+          {t('auth.terms')}
         </Link>
       </div>
     </div>

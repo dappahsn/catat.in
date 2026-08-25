@@ -5,7 +5,7 @@ export const id = {
   'nav.recap': 'Rekap',
   'nav.settings': 'Pengaturan',
 
-  // Auth
+  // Auth / Login
   'auth.tagline': 'Kelola keuangan dengan lebih mudah.',
   'auth.google': 'Masuk dengan Google',
   'auth.privacy': 'Kebijakan Privasi',
@@ -24,7 +24,7 @@ export const id = {
   'transaction.add': '+ Tambah Transaksi',
   'transaction.add_short': '+',
   'transaction.total_balance': 'Total Saldo',
-  'transaction.history': 'Riwayat',
+  'transaction.history': 'Riwayat Transaksi',
   'transaction.empty': 'Belum ada transaksi',
   'transaction.empty_sub': 'Mulai catat pemasukan dan pengeluaranmu.',
   'transaction.load_more': 'Muat Lebih Banyak',
@@ -33,13 +33,23 @@ export const id = {
   'transaction.yesterday': 'Kemarin',
   'transaction.delete_confirm': 'Hapus transaksi?',
   'transaction.delete_desc': 'Transaksi ini akan dihapus secara permanen.',
+  'transaction.search_placeholder': 'Cari transaksi...',
+  'transaction.all_types': 'Semua Tipe',
+  'transaction.all_accounts': 'Semua Rekening',
+  'transaction.all_categories': 'Semua Kategori',
+  'transaction.filter': 'Filter',
+  'transaction.reset_filter': 'Reset Filter',
 
   // Transaction types
   'transaction.income': 'Pemasukan',
   'transaction.expense': 'Pengeluaran',
   'transaction.transfer': 'Pindah Saldo',
+  'transaction.in': 'Masuk',
+  'transaction.out': 'Keluar',
 
   // Transaction form
+  'form.title_add': 'Tambah Transaksi',
+  'form.title_edit': 'Edit Transaksi',
   'form.amount': 'Jumlah',
   'form.account': 'Rekening',
   'form.account_from': 'Dari Rekening',
@@ -67,17 +77,21 @@ export const id = {
 
   // Accounts page
   'account.title': 'Rekening',
+  'account.subtitle': 'Kelola rekening keuangan kamu.',
   'account.total': 'Total Saldo',
+  'account.count': 'rekening',
   'account.add': '+ Tambah Rekening',
   'account.add_short': '+',
   'account.empty': 'Belum ada rekening',
   'account.empty_sub': 'Tambahkan rekening untuk mulai mencatat keuangan.',
   'account.name': 'Nama Rekening',
-  'account.name_placeholder': 'Contoh: BCA, GoPay',
+  'account.name_placeholder': 'Contoh: BCA, GoPay, Tunai',
   'account.type': 'Jenis Rekening',
   'account.initial_balance': 'Saldo Awal',
+  'account.current_balance': 'Saldo Saat Ini',
   'account.icon': 'Ikon',
   'account.save': 'Simpan Rekening',
+  'account.save_changes': 'Simpan Perubahan',
   'account.saving': 'Menyimpan...',
   'account.monthly_income': 'Pemasukan Bulan Ini',
   'account.monthly_expense': 'Pengeluaran Bulan Ini',
@@ -91,6 +105,11 @@ export const id = {
   'account.type.ewallet': 'E-Wallet',
   'account.type.other': 'Lainnya',
 
+  // Account Detail
+  'account_detail.title': 'Detail Rekening',
+  'account_detail.total_transactions': 'Total Transaksi',
+  'account_detail.back': 'Kembali ke Rekening',
+
   // Recap page
   'recap.title': 'Rekap',
   'recap.realtime': 'Realtime',
@@ -99,6 +118,8 @@ export const id = {
   'recap.income': 'Pemasukan',
   'recap.expense': 'Pengeluaran',
   'recap.difference': 'Selisih',
+  'recap.category_breakdown': 'Rincian Kategori',
+  'recap.total': 'Total',
   'recap.empty': 'Belum ada data untuk periode ini.',
   'recap.prev_month': 'Bulan Sebelumnya',
   'recap.next_month': 'Bulan Berikutnya',
@@ -106,24 +127,24 @@ export const id = {
   'recap.chart_income': 'Pemasukan',
 
   // Settings page
-  'settings.title': 'Settings',
+  'settings.title': 'Pengaturan',
   'settings.subtitle': 'Kelola akun, preferensi tampilan, dan data aplikasi Anda',
-  'settings.account': 'Account',
-  'settings.preferences': 'Preferences',
-  'settings.data_management': 'Data Management',
-  'settings.reminder': 'Daily Reminder',
+  'settings.account': 'Akun',
+  'settings.preferences': 'Preferensi',
+  'settings.data_management': 'Manajemen Data',
+  'settings.reminder': 'Pengingat Harian',
   'settings.appearance': 'Tampilan',
-  'settings.language': 'Language',
+  'settings.language': 'Bahasa',
   'settings.data': 'Data',
   'settings.danger_zone': 'Zona Bahaya',
-  'settings.logout': 'Logout',
+  'settings.logout': 'Keluar',
   'settings.logout_confirm': 'Keluar dari akun?',
   'settings.logout_desc': 'Kamu akan keluar dari aplikasi. Data keuanganmu tetap aman.',
   'settings.provider': 'Login dengan Google',
 
   // Reminder
-  'reminder.title': 'Daily Reminder',
-  'reminder.subtitle': 'Remind me to record transactions',
+  'reminder.title': 'Pengingat Harian',
+  'reminder.subtitle': 'Ingatkan saya untuk mencatat transaksi',
   'reminder.active_at': 'Aktif pukul',
   'reminder.time': 'Waktu Pengingat',
   'reminder.adjust_time': 'Atur Waktu Pengingat',
@@ -134,7 +155,7 @@ export const id = {
   'reminder.enabled': 'Aktifkan Pengingat',
 
   // Theme
-  'theme.title': 'Theme',
+  'theme.title': 'Tema',
   'theme.choose_theme': 'Pilih Tema',
   'theme.system': 'Ikuti Sistem',
   'theme.light': 'Terang',
@@ -151,13 +172,13 @@ export const id = {
   'theme.accent.red': 'Merah',
 
   // Language
-  'language.title': 'Language',
+  'language.title': 'Bahasa',
   'language.choose_language': 'Pilih Bahasa',
   'language.id': 'Bahasa Indonesia',
   'language.en': 'English',
 
   // Categories
-  'categories.title': 'Transaction Categories',
+  'categories.title': 'Kategori Transaksi',
   'categories.registered': 'Kategori terdaftar',
   'categories.manage_title': 'Kelola Kategori',
   'categories.add': 'Tambah Kategori',
@@ -183,14 +204,14 @@ export const id = {
   // Backup & Restore
   'backup.title': 'Backup Data',
   'backup.desc': 'Unduh semua data keuanganmu sebagai file JSON.',
-  'backup.save_desc': 'Save to Google Drive / JSON file',
+  'backup.save_desc': 'Simpan ke Google Drive / file JSON',
   'backup.preparing': 'Menyiapkan file backup...',
   'backup.button': 'Buat Backup',
   'backup.button_short': 'Backup',
   'backup.success': 'Backup berhasil diunduh.',
-  'restore.title': 'Restore Data',
+  'restore.title': 'Pulihkan Data',
   'restore.desc': 'Pulihkan data dari file backup JSON.',
-  'restore.load_desc': 'Load from backup file',
+  'restore.load_desc': 'Muat dari file backup',
   'restore.button': 'Pilih File',
   'restore.preview': 'Preview Backup',
   'restore.preview_note': 'Data ini akan ditambahkan ke akun kamu saat ini.',
@@ -204,9 +225,9 @@ export const id = {
   'restore.invalid': 'File backup tidak valid atau rusak.',
 
   // Delete all data
-  'danger.delete_all': 'Delete All Data',
+  'danger.delete_all': 'Hapus Semua Data',
   'danger.delete_all_title': 'Hapus Semua Data?',
-  'danger.undone_desc': 'This action cannot be undone',
+  'danger.undone_desc': 'Tindakan ini tidak dapat dibatalkan',
   'danger.delete_all_desc': 'Semua transaksi, rekening, dan data keuangan akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.',
   'danger.type_to_confirm': 'Ketik HAPUS untuk konfirmasi',
   'danger.confirm_word': 'HAPUS',
@@ -239,7 +260,6 @@ export const id = {
   'detail.category': 'Kategori',
   'detail.date': 'Tanggal',
   'detail.notes': 'Catatan',
-  'detail.created': 'Dibuat',
-} as const
+}
 
 export type TranslationKey = keyof typeof id

@@ -1,6 +1,7 @@
 import type { TransactionType } from '@/types/transaction'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { TrendingUp, TrendingDown, ArrowLeftRight } from 'lucide-react'
+import { useI18n } from '@/contexts/I18nContext'
 
 interface TransactionTypeSheetProps {
   isOpen: boolean
@@ -8,15 +9,38 @@ interface TransactionTypeSheetProps {
   onSelect: (type: TransactionType) => void
 }
 
-const options: { type: TransactionType; label: string; desc: string; icon: typeof TrendingUp; color: string; bg: string }[] = [
-  { type: 'income',   label: 'Pemasukan',    desc: 'Gaji, bonus, atau penerimaan lainnya', icon: TrendingUp,       color: 'text-[var(--success-foreground)]', bg: 'bg-[var(--success-light)]' },
-  { type: 'expense',  label: 'Pengeluaran',  desc: 'Belanja, tagihan, atau pengeluaran',   icon: TrendingDown,     color: 'text-[var(--danger-foreground)]',  bg: 'bg-[var(--danger-light)]' },
-  { type: 'transfer', label: 'Pindah Saldo', desc: 'Pindahkan antar rekening kamu',        icon: ArrowLeftRight,   color: 'text-[var(--text-secondary)]',     bg: 'bg-[var(--surface-2)]' },
-]
-
 export function TransactionTypeSheet({ isOpen, onClose, onSelect }: TransactionTypeSheetProps) {
+  const { t, language } = useI18n()
+
+  const options: { type: TransactionType; label: string; desc: string; icon: typeof TrendingUp; color: string; bg: string }[] = [
+    {
+      type: 'income',
+      label: t('transaction.income'),
+      desc: language === 'en' ? 'Salary, bonus, or other earnings' : 'Gaji, bonus, atau penerimaan lainnya',
+      icon: TrendingUp,
+      color: 'text-[var(--success-foreground)]',
+      bg: 'bg-[var(--success-light)]',
+    },
+    {
+      type: 'expense',
+      label: t('transaction.expense'),
+      desc: language === 'en' ? 'Shopping, bills, or other expenses' : 'Belanja, tagihan, atau pengeluaran',
+      icon: TrendingDown,
+      color: 'text-[var(--danger-foreground)]',
+      bg: 'bg-[var(--danger-light)]',
+    },
+    {
+      type: 'transfer',
+      label: t('transaction.transfer'),
+      desc: language === 'en' ? 'Transfer between your accounts' : 'Pindahkan antar rekening kamu',
+      icon: ArrowLeftRight,
+      color: 'text-[var(--text-secondary)]',
+      bg: 'bg-[var(--surface-2)]',
+    },
+  ]
+
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Tambah Transaksi">
+    <BottomSheet isOpen={isOpen} onClose={onClose} title={t('transaction.add')}>
       <div className="flex flex-col gap-2 pb-2">
         {options.map(({ type, label, desc, icon: Icon, color, bg }) => (
           <button

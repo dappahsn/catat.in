@@ -1,6 +1,7 @@
 import type { CategoryBreakdownItem } from '@/services/recap.service'
 import { formatCurrency } from '@/utils/currency'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { useI18n } from '@/contexts/I18nContext'
 
 const COLORS = [
   '#2563EB', '#16A34A', '#9333EA', '#EA580C', '#DC2626',
@@ -13,6 +14,8 @@ interface CategoryBreakdownProps {
 }
 
 export function CategoryBreakdown({ data, loading }: CategoryBreakdownProps) {
+  const { t } = useI18n()
+
   if (loading) {
     return (
       <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4">
@@ -37,7 +40,7 @@ export function CategoryBreakdown({ data, loading }: CategoryBreakdownProps) {
 
   return (
     <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4">
-      <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-4">Rincian Kategori</h3>
+      <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-4">{t('recap.category_breakdown')}</h3>
       <div className="flex flex-col gap-3">
         {data.map(({ categoryId, categoryName, categoryIcon, amount, percentage }, i) => (
           <div key={categoryId} className="flex items-center gap-3">

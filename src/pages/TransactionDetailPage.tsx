@@ -6,10 +6,12 @@ import type { Transaction } from '@/types/transaction'
 import { TransactionDetail } from '@/components/transactions/TransactionDetail'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Button } from '@/components/ui/Button'
+import { useI18n } from '@/contexts/I18nContext'
 
 export function TransactionDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t, language } = useI18n()
 
   const [transaction, setTransaction] = useState<Transaction | null>(null)
   const [loading, setLoading] = useState(true)
@@ -32,11 +34,11 @@ export function TransactionDetailPage() {
         <button
           onClick={() => navigate('/transactions')}
           className="p-2 rounded-xl hover:bg-[var(--surface-2)] transition-fast"
-          aria-label="Kembali"
+          aria-label={t('common.back')}
         >
           <ArrowLeft size={20} className="text-[var(--text-primary)]" />
         </button>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">Detail Transaksi</h1>
+        <h1 className="text-lg font-bold text-[var(--text-primary)]">{t('detail.title')}</h1>
       </div>
 
       {loading ? (
@@ -45,8 +47,8 @@ export function TransactionDetailPage() {
         </div>
       ) : notFound || !transaction ? (
         <div className="text-center py-8">
-          <p className="text-[var(--text-secondary)]">Transaksi tidak ditemukan.</p>
-          <Button variant="ghost" onClick={() => navigate('/transactions')} className="mt-2">Kembali</Button>
+          <p className="text-[var(--text-secondary)]">{language === 'en' ? 'Transaction not found.' : 'Transaksi tidak ditemukan.'}</p>
+          <Button variant="ghost" onClick={() => navigate('/transactions')} className="mt-2">{t('common.back')}</Button>
         </div>
       ) : (
         <TransactionDetail

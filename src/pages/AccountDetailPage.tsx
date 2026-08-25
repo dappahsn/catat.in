@@ -5,7 +5,6 @@ import { getAccountBalance, getAccountMonthlyStats, deleteAccount, getAccounts }
 import { getAccountTransactions } from '@/services/transactions.service'
 import type { Account } from '@/types/account'
 import type { Transaction } from '@/types/transaction'
-import { ACCOUNT_TYPE_LABELS } from '@/types/account'
 import { AccountForm } from '@/components/accounts/AccountForm'
 import { TransactionItem } from '@/components/transactions/TransactionItem'
 import { BottomSheet } from '@/components/ui/BottomSheet'
@@ -15,12 +14,15 @@ import { Skeleton, TransactionSkeleton } from '@/components/ui/Skeleton'
 import { formatCurrency } from '@/utils/currency'
 import { useToast } from '@/contexts/ToastContext'
 import { useAuth } from '@/contexts/AuthContext'
+import { useI18n } from '@/contexts/I18nContext'
+import type { TranslationKey } from '@/locales/id'
 
 export function AccountDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
   const { showToast } = useToast()
+  const { t, language } = useI18n()
 
   const [account, setAccount] = useState<Account | null>(null)
   const [balance, setBalance] = useState(0)
@@ -52,11 +54,11 @@ export function AccountDetailPage() {
       setHasMore(more)
       setPage(0)
     } catch {
-      showToast('Gagal memuat detail rekening.', 'error')
+      showToast(t('common.failed_load'), 'error')
     } finally {
       setLoading(false)
     }
-  }, [id, user, showToast])
+  }, [id, user, showToast, t])
 
   useEffect(() => { load() }, [load])
 
@@ -76,13 +78,13 @@ export function AccountDetailPage() {
     setDeleting(true)
     try {
       await deleteAccount(id)
-      showToast('Rekening berhasil dihapus.', 'success')
+      showToast(language === 'en' ? 'Account deleted successfully.' : 'Rekening berhasil dihapus.', 'success')
       navigate('/accounts', { replace: true })
     } catch (err: unknown) {
       if (err instanceof Error && err.message === 'ACCOUNT_HAS_TRANSACTIONS') {
-        showToast('Rekening masih memiliki transaksi. Hapus transaksi terlebih dahulu.', 'error')
+        showToast(t('account.delete_has_transactions'), 'error')
       } else {
-        showToast('Gagal menghapus rekening.', 'error')
+        showToast(t('common.error'), 'error')
       }
     } finally {
       setDeleting(false)
@@ -108,11 +110,13 @@ export function AccountDetailPage() {
   if (!account) {
     return (
       <div className="px-4 py-8 text-center">
-        <p className="text-[var(--text-secondary)]">Rekening tidak ditemukan.</p>
-        <Button variant="ghost" onClick={() => navigate('/accounts')} className="mt-2">Kembali</Button>
+        <p className="text-[var(--text-secondary)]">{language === 'en' ? 'Account not found.' : 'Rekening tidak ditemukan.'}</p>
+        <Button variant="ghost" onClick={() => navigate('/accounts')} className="mt-2">{t('common.back')}</Button>
       </div>
     )
   }
+
+  const typeKey = `account.type.${account.type}` as TranslationKey
 
   return (
     <div className="px-4 py-5">
@@ -121,38 +125,38 @@ export function AccountDetailPage() {
         <button
           onClick={() => navigate('/accounts')}
           className="p-2 rounded-xl hover:bg-[var(--surface-2)] transition-fast"
-          aria-label="Kembali"
+          aria-label={t('common.back')}
         >
           <ArrowLeft size={20} className="text-[var(--text-primary)]" />
         </button>
         <div className="flex-1">
           <h1 className="text-lg font-bold text-[var(--text-primary)]">{account.name}</h1>
-          <p className="text-xs text-[var(--text-muted)]">{ACCOUNT_TYPE_LABELS[account.type]}</p>
+          <p className="text-xs text-[var(--text-muted)]">{t(typeKey)}</p>
         </div>
-        <button onClick={() => setShowEditSheet(true)} className="p-2 rounded-xl hover:bg-[var(--surface-2)] transition-fast" aria-label="Edit rekening">
+        <button onClick={() => setShowEditSheet(true)} className="p-2 rounded-xl hover:bg-[var(--surface-2)] transition-fast" aria-label={t('account.edit')}>
           <Edit2 size={18} className="text-[var(--text-secondary)]" />
         </button>
-        <button onClick={() => setShowDeleteDialog(true)} className="p-2 rounded-xl hover:bg-[var(--danger-light)] transition-fast" aria-label="Hapus rekening">
+        <button onClick={() => setShowDeleteDialog(true)} className="p-2 rounded-xl hover:bg-[var(--danger-light)] transition-fast" aria-label={t('account.delete')}>
           <Trash2 size={18} className="text-[var(--danger)]" />
         </button>
       </div>
 
       {/* Balance card */}
       <div className="bg-[var(--primary)] rounded-2xl p-5 text-white mb-4">
-        <p className="text-sm opacity-80 mb-1">Saldo Saat Ini</p>
+        <p className="text-sm opacity-80 mb-1">{t('account.current_balance')}</p>
         <p className="text-3xl font-bold tabular-nums">{formatCurrency(balance)}</p>
       </div>
 
       {/* Monthly stats */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         <div className="bg-[var(--surface)] rounded-xl p-4 border border-[var(--border)]">
-          <p className="text-xs text-[var(--text-muted)] mb-1">Pemasukan Bulan Ini</p>
+          <p className="text-xs text-[var(--text-muted)] mb-1">{t('account.monthly_income')}</p>
           <p className="font-semibold text-sm text-[var(--success-foreground)] tabular-nums">
             +{formatCurrency(monthlyStats.monthlyIncome)}
           </p>
         </div>
         <div className="bg-[var(--surface)] rounded-xl p-4 border border-[var(--border)]">
-          <p className="text-xs text-[var(--text-muted)] mb-1">Pengeluaran Bulan Ini</p>
+          <p className="text-xs text-[var(--text-muted)] mb-1">{t('account.monthly_expense')}</p>
           <p className="font-semibold text-sm text-[var(--danger-foreground)] tabular-nums">
             -{formatCurrency(monthlyStats.monthlyExpense)}
           </p>
@@ -160,23 +164,23 @@ export function AccountDetailPage() {
       </div>
 
       {/* Transaction history */}
-      <h2 className="font-semibold text-sm text-[var(--text-primary)] mb-3">Riwayat Transaksi</h2>
+      <h2 className="font-semibold text-sm text-[var(--text-primary)] mb-3">{t('transaction.history')}</h2>
       {transactions.length === 0 ? (
-        <p className="text-sm text-[var(--text-muted)] py-4 text-center">Belum ada transaksi.</p>
+        <p className="text-sm text-[var(--text-muted)] py-4 text-center">{t('transaction.empty')}</p>
       ) : (
         <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] overflow-hidden">
-          {transactions.map((t, i) => (
-            <div key={t.id} className={i < transactions.length - 1 ? 'border-b border-[var(--border-subtle)]' : ''}>
+          {transactions.map((tx, i) => (
+            <div key={tx.id} className={i < transactions.length - 1 ? 'border-b border-[var(--border-subtle)]' : ''}>
               <TransactionItem
-                transaction={t}
-                onPress={() => navigate(`/transactions/${t.id}`)}
+                transaction={tx}
+                onPress={() => navigate(`/transactions/${tx.id}`)}
               />
             </div>
           ))}
           {hasMore && (
             <div className="p-3 text-center">
               <Button variant="ghost" size="sm" onClick={loadMore} loading={loadingMore}>
-                Muat Lebih Banyak
+                {t('transaction.load_more')}
               </Button>
             </div>
           )}
@@ -184,7 +188,7 @@ export function AccountDetailPage() {
       )}
 
       {/* Edit Sheet */}
-      <BottomSheet isOpen={showEditSheet} onClose={() => setShowEditSheet(false)} title="Edit Rekening">
+      <BottomSheet isOpen={showEditSheet} onClose={() => setShowEditSheet(false)} title={t('account.edit')}>
         <AccountForm
           account={account}
           onSuccess={() => { setShowEditSheet(false); load() }}
@@ -195,9 +199,11 @@ export function AccountDetailPage() {
       {/* Delete Confirm */}
       <ConfirmDialog
         isOpen={showDeleteDialog}
-        title="Hapus rekening?"
-        description="Rekening ini akan dihapus secara permanen. Transaksi yang terhubung harus dihapus terlebih dahulu."
-        confirmLabel="Hapus"
+        title={t('account.delete_confirm')}
+        description={t('account.delete_desc')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        confirmVariant="danger"
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteDialog(false)}
         loading={deleting}

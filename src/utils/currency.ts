@@ -7,12 +7,15 @@ export function formatCurrency(
   locale: string = 'id-ID',
   currency: string = 'IDR'
 ): string {
-  return new Intl.NumberFormat(locale, {
+  const formatted = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount)
+
+  // Replace any spaces with non-breaking spaces so currency symbols & minus signs never wrap onto a separate line
+  return formatted.replace(/\s+/g, '\u00A0')
 }
 
 /**
@@ -20,13 +23,13 @@ export function formatCurrency(
  */
 export function formatCurrencyCompact(amount: number): string {
   if (Math.abs(amount) >= 1_000_000_000) {
-    return `Rp ${(amount / 1_000_000_000).toFixed(1).replace('.', ',')} M`
+    return `Rp\u00A0${(amount / 1_000_000_000).toFixed(1).replace('.', ',')}\u00A0M`
   }
   if (Math.abs(amount) >= 1_000_000) {
-    return `Rp ${(amount / 1_000_000).toFixed(1).replace('.', ',')} jt`
+    return `Rp\u00A0${(amount / 1_000_000).toFixed(1).replace('.', ',')}\u00A0jt`
   }
   if (Math.abs(amount) >= 1_000) {
-    return `Rp ${(amount / 1_000).toFixed(0)} rb`
+    return `Rp\u00A0${(amount / 1_000).toFixed(0)}\u00A0rb`
   }
   return formatCurrency(amount)
 }

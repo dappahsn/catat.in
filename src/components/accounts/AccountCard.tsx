@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import type { Account } from '@/types/account'
-import { ACCOUNT_TYPE_LABELS } from '@/types/account'
 import { formatCurrency } from '@/utils/currency'
 import { ChevronRight } from 'lucide-react'
+import { useI18n } from '@/contexts/I18nContext'
+import type { TranslationKey } from '@/locales/id'
 
 interface AccountCardProps {
   account: Account
@@ -11,6 +12,10 @@ interface AccountCardProps {
 
 export function AccountCard({ account, currentBalance }: AccountCardProps) {
   const navigate = useNavigate()
+  const { t } = useI18n()
+
+  const typeKey = `account.type.${account.type}` as TranslationKey
+  const typeLabel = t(typeKey)
 
   return (
     <button
@@ -27,7 +32,7 @@ export function AccountCard({ account, currentBalance }: AccountCardProps) {
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-sm text-[var(--text-primary)] truncate">{account.name}</p>
         <span className="text-xs text-[var(--text-muted)] bg-[var(--surface-2)] px-2 py-0.5 rounded-full mt-0.5 inline-block">
-          {ACCOUNT_TYPE_LABELS[account.type]}
+          {typeLabel}
         </span>
       </div>
 

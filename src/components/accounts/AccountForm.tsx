@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
+import { useI18n } from '@/contexts/I18nContext'
 import { createAccount, updateAccount } from '@/services/accounts.service'
 import type { Account, AccountType } from '@/types/account'
 import { Input } from '@/components/ui/Input'
@@ -17,17 +18,18 @@ interface AccountFormProps {
 
 const ACCOUNT_ICONS = ['🏦', '💳', '💵', '📱', '🏧', '💰', '🔐', '🌟']
 
-const typeOptions = [
-  { value: 'bank', label: 'Bank' },
-  { value: 'cash', label: 'Tunai' },
-  { value: 'ewallet', label: 'E-Wallet' },
-  { value: 'other', label: 'Lainnya' },
-]
-
 export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) {
   const { user } = useAuth()
   const { showToast } = useToast()
+  const { t, language } = useI18n()
   const isEdit = !!account
+
+  const typeOptions = [
+    { value: 'bank', label: t('account.type.bank') },
+    { value: 'cash', label: t('account.type.cash') },
+    { value: 'ewallet', label: t('account.type.ewallet') },
+    { value: 'other', label: t('account.type.other') },
+  ]
 
   const [form, setForm] = useState({
     name: account?.name ?? '',
@@ -43,7 +45,7 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
     const nameErr = validateAccountName(form.name)
     if (nameErr) errs.name = nameErr
     const amount = parseCurrencyInput(form.initial_balance_display)
-    if (amount < 0) errs.initial_balance = 'Saldo tidak boleh negatif'
+    if (amount < 0) errs.initial_balance = language === 'en' ? 'Balance cannot be negative' : 'Saldo tidak boleh negatif'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -58,7 +60,7 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
           type: form.type,
           icon: form.icon,
         })
-        showToast('Rekening berhasil diperbarui.', 'success')
+        showToast(language === 'en' ? 'Account updated successfully.' : 'Rekening berhasil diperbarui.', 'success')
       } else {
         await createAccount(user.id, {
           name: form.name.trim(),
@@ -66,11 +68,11 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
           icon: form.icon,
           initial_balance: parseCurrencyInput(form.initial_balance_display),
         })
-        showToast('Rekening berhasil ditambahkan.', 'success')
+        showToast(language === 'en' ? 'Account added successfully.' : 'Rekening berhasil ditambahkan.', 'success')
       }
       onSuccess()
     } catch {
-      showToast('Gagal menyimpan rekening. Coba lagi.', 'error')
+      showToast(t('common.error'), 'error')
     } finally {
       setSaving(false)
     }
@@ -80,7 +82,7 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
     <div className="flex flex-col gap-4">
       {/* Icon picker */}
       <div>
-        <p className="text-sm font-medium text-[var(--text-primary)] mb-2">Ikon</p>
+        <p className="text-sm font-medium text-[var(--text-primary)] mb-2">{t('account.icon')}</p>
         <div className="flex flex-wrap gap-2">
           {ACCOUNT_ICONS.map((icon) => (
             <button
@@ -93,7 +95,7 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
                   ? 'bg-[var(--primary-light)] ring-2 ring-[var(--primary)]'
                   : 'bg-[var(--surface-2)] hover:bg-[var(--border)]',
               ].join(' ')}
-              aria-label={`Ikon ${icon}`}
+              aria-label={`Icon ${icon}`}
               aria-pressed={form.icon === icon}
             >
               {icon}
@@ -103,8 +105,8 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
       </div>
 
       <Input
-        label="Nama Rekening"
-        placeholder="Contoh: BCA, GoPay"
+        label={t('account.name')}
+        placeholder={t('account.name_placeholder')}
         value={form.name}
         onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
         error={errors.name}
@@ -113,7 +115,7 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
       />
 
       <Select
-        label="Jenis Rekening"
+        label={t('account.type')}
         options={typeOptions}
         value={form.type}
         onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as AccountType }))}
@@ -121,7 +123,7 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
 
       {!isEdit && (
         <Input
-          label="Saldo Awal"
+          label={t('account.initial_balance')}
           prefix="Rp"
           inputMode="numeric"
           value={form.initial_balance_display}
@@ -130,16 +132,16 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
             setForm((f) => ({ ...f, initial_balance_display: formatNumberDisplay(raw) }))
           }}
           error={errors.initial_balance}
-          hint="Masukkan saldo saat ini di rekening ini."
+          hint={language === 'en' ? 'Enter current balance for this account.' : 'Masukkan saldo saat ini di rekening ini.'}
         />
       )}
 
       <div className="flex gap-2 pt-2">
         <Button variant="secondary" fullWidth onClick={onCancel} disabled={saving}>
-          Batal
+          {t('common.cancel')}
         </Button>
         <Button fullWidth onClick={handleSubmit} loading={saving}>
-          {saving ? 'Menyimpan...' : 'Simpan Rekening'}
+          {saving ? t('common.loading') : isEdit ? t('account.save_changes') : t('account.save')}
         </Button>
       </div>
     </div>

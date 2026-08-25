@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
+import { useI18n } from '@/contexts/I18nContext'
 import { createTransaction, updateTransaction } from '@/services/transactions.service'
 import { getAccountsWithBalances } from '@/services/accounts.service'
 import { getCategories } from '@/services/categories.service'
@@ -22,15 +23,10 @@ interface TransactionFormProps {
 
 interface AccountOption { value: string; label: string; balance: number }
 
-const TYPE_LABELS: Record<TransactionType, string> = {
-  income: 'Pemasukan',
-  expense: 'Pengeluaran',
-  transfer: 'Pindah Saldo',
-}
-
 export function TransactionForm({ type, transaction, onSuccess, onCancel }: TransactionFormProps) {
   const { user } = useAuth()
   const { showToast } = useToast()
+  const { t, language } = useI18n()
   const isEdit = !!transaction
 
   const [accounts, setAccounts] = useState<AccountOption[]>([])
@@ -84,17 +80,20 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
       const amountErr = validateTransferAmount(amount, getSourceBalance())
       if (amountErr) errs.amount = amountErr
     } else if (type === 'expense') {
-      if (!form.account_id) errs.account = 'Rekening wajib dipilih'
+      if (!form.account_id) errs.account = language === 'en' ? 'Account is required' : 'Rekening wajib dipilih'
       const amountErr = validateExpenseAmount(amount, getSourceBalance())
       if (amountErr) errs.amount = amountErr
     } else {
-      if (!form.account_id) errs.account = 'Rekening wajib dipilih'
+      if (!form.account_id) errs.account = language === 'en' ? 'Account is required' : 'Rekening wajib dipilih'
       const amountErr = validateAmount(amount)
       if (amountErr) errs.amount = amountErr
     }
 
-    if (!form.transaction_date) errs.date = 'Tanggal wajib diisi'
-    else if (!isNotFutureDate(form.transaction_date)) errs.date = 'Tanggal transaksi tidak boleh melebihi hari ini'
+    if (!form.transaction_date) {
+      errs.date = language === 'en' ? 'Date is required' : 'Tanggal wajib diisi'
+    } else if (!isNotFutureDate(form.transaction_date)) {
+      errs.date = language === 'en' ? 'Transaction date cannot be in the future' : 'Tanggal transaksi tidak boleh melebihi hari ini'
+    }
 
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -118,37 +117,37 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
     try {
       if (isEdit) {
         await updateTransaction(transaction!.id, input)
-        showToast('Transaksi berhasil diperbarui.', 'success')
+        showToast(language === 'en' ? 'Transaction updated successfully.' : 'Transaksi berhasil diperbarui.', 'success')
       } else {
         await createTransaction(user.id, input)
-        showToast(`${TYPE_LABELS[type]} berhasil ditambahkan.`, 'success')
+        showToast(language === 'en' ? 'Transaction added successfully.' : 'Transaksi berhasil ditambahkan.', 'success')
       }
       onSuccess()
     } catch {
-      showToast('Gagal menyimpan transaksi. Coba lagi.', 'error')
+      showToast(t('common.error'), 'error')
     } finally {
       setSaving(false)
     }
   }
 
   if (loading) {
-    return <div className="py-4 text-center text-sm text-[var(--text-muted)]">Memuat...</div>
+    return <div className="py-4 text-center text-sm text-[var(--text-muted)]">{t('common.loading')}</div>
   }
 
   const accountOptions = accounts.map((a) => ({ value: a.value, label: a.label }))
   const categoryOptions = categories.map((c) => ({ value: c.id, label: `${c.icon ?? ''} ${c.name}`.trim() }))
 
   const saveLabel = {
-    income: 'Simpan Pemasukan',
-    expense: 'Simpan Pengeluaran',
-    transfer: 'Pindahkan Saldo',
+    income: t('form.save_income'),
+    expense: t('form.save_expense'),
+    transfer: t('form.save_transfer'),
   }
 
   return (
     <div className="flex flex-col gap-4 pb-2">
       {/* Amount (always first, prominent) */}
       <Input
-        label="Jumlah"
+        label={t('form.amount')}
         prefix="Rp"
         inputMode="numeric"
         placeholder="0"
@@ -165,27 +164,27 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
       {type === 'transfer' ? (
         <>
           <Select
-            label="Dari Rekening"
+            label={t('form.account_from')}
             options={accountOptions}
             value={form.account_id}
-            placeholder="Pilih rekening"
+            placeholder={t('form.select_account')}
             onChange={(e) => setForm((f) => ({ ...f, account_id: e.target.value }))}
             error={errors.account}
           />
           <Select
-            label="Ke Rekening"
+            label={t('form.account_to')}
             options={accountOptions.filter((a) => a.value !== form.account_id)}
             value={form.destination_account_id}
-            placeholder="Pilih rekening tujuan"
+            placeholder={language === 'en' ? 'Select destination account' : 'Pilih rekening tujuan'}
             onChange={(e) => setForm((f) => ({ ...f, destination_account_id: e.target.value }))}
           />
         </>
       ) : (
         <Select
-          label="Rekening"
+          label={t('form.account')}
           options={accountOptions}
           value={form.account_id}
-          placeholder="Pilih rekening"
+          placeholder={t('form.select_account')}
           onChange={(e) => setForm((f) => ({ ...f, account_id: e.target.value }))}
           error={errors.account}
         />
@@ -194,17 +193,17 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
       {/* Category (not for transfer) */}
       {type !== 'transfer' && categoryOptions.length > 0 && (
         <Select
-          label="Kategori"
+          label={t('form.category')}
           options={categoryOptions}
           value={form.category_id}
-          placeholder="Pilih kategori (opsional)"
+          placeholder={language === 'en' ? 'Select category (optional)' : 'Pilih kategori (opsional)'}
           onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
         />
       )}
 
       {/* Date */}
       <Input
-        label="Tanggal"
+        label={t('form.date')}
         type="date"
         value={form.transaction_date}
         max={getTodayString()}
@@ -214,8 +213,8 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
 
       {/* Notes */}
       <Input
-        label="Catatan"
-        placeholder="Tambahkan catatan (opsional)"
+        label={t('form.notes')}
+        placeholder={t('form.notes_placeholder')}
         value={form.notes}
         onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
         maxLength={200}
@@ -224,10 +223,10 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
       {/* Actions */}
       <div className="flex gap-2 pt-2">
         <Button variant="secondary" fullWidth onClick={onCancel} disabled={saving}>
-          Batal
+          {t('common.cancel')}
         </Button>
         <Button fullWidth onClick={handleSubmit} loading={saving}>
-          {saving ? 'Menyimpan...' : saveLabel[type]}
+          {saving ? t('form.saving') : saveLabel[type]}
         </Button>
       </div>
     </div>

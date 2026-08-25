@@ -2,26 +2,21 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
+import { useI18n } from '@/contexts/I18nContext'
 import { createAccount } from '@/services/accounts.service'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
-import { validateAccountName, validateAmount } from '@/utils/validation'
+import { validateAccountName } from '@/utils/validation'
 import { parseCurrencyInput, formatNumberDisplay } from '@/utils/currency'
 
 type Step = 'welcome' | 'create-account'
-
-const accountTypeOptions = [
-  { value: 'bank', label: 'Bank' },
-  { value: 'cash', label: 'Tunai' },
-  { value: 'ewallet', label: 'E-Wallet' },
-  { value: 'other', label: 'Lainnya' },
-]
 
 export function OnboardingPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { showToast } = useToast()
+  const { t, language } = useI18n()
 
   const [step, setStep] = useState<Step>('welcome')
   const [saving, setSaving] = useState(false)
@@ -32,6 +27,13 @@ export function OnboardingPage() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  const accountTypeOptions = [
+    { value: 'bank', label: t('account.type.bank') },
+    { value: 'cash', label: t('account.type.cash') },
+    { value: 'ewallet', label: t('account.type.ewallet') },
+    { value: 'other', label: t('account.type.other') },
+  ]
+
   const handleSkip = () => navigate('/transactions', { replace: true })
 
   const validateForm = () => {
@@ -39,7 +41,7 @@ export function OnboardingPage() {
     const nameErr = validateAccountName(form.name)
     if (nameErr) errs.name = nameErr
     const amount = parseCurrencyInput(form.initial_balance_display)
-    if (amount < 0) errs.initial_balance = 'Saldo tidak boleh negatif'
+    if (amount < 0) errs.initial_balance = language === 'en' ? 'Balance cannot be negative' : 'Saldo tidak boleh negatif'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -55,7 +57,7 @@ export function OnboardingPage() {
       })
       navigate('/transactions', { replace: true })
     } catch {
-      showToast('Gagal membuat rekening. Coba lagi.', 'error')
+      showToast(t('common.error'), 'error')
     } finally {
       setSaving(false)
     }
@@ -69,14 +71,14 @@ export function OnboardingPage() {
             <div className="text-center mb-8">
               <div className="text-5xl mb-4" aria-hidden="true">👋</div>
               <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">
-                Selamat Datang!
+                {t('onboarding.welcome')}
               </h1>
               <p className="text-sm text-[var(--text-secondary)]">
-                Mulai dengan menambahkan rekening pertama kamu untuk mencatat keuangan.
+                {t('onboarding.subtitle')}
               </p>
             </div>
             <Button fullWidth size="lg" onClick={() => setStep('create-account')}>
-              Tambah Rekening Pertama
+              {t('onboarding.step')}
             </Button>
             <Button
               fullWidth
@@ -84,22 +86,22 @@ export function OnboardingPage() {
               onClick={handleSkip}
               className="mt-2 text-[var(--text-muted)]"
             >
-              Lewati
+              {t('onboarding.skip')}
             </Button>
           </>
         ) : (
           <>
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-[var(--text-primary)] mb-1">Tambah Rekening</h2>
+              <h2 className="text-xl font-bold text-[var(--text-primary)] mb-1">{t('account.add')}</h2>
               <p className="text-sm text-[var(--text-secondary)]">
-                Masukkan informasi rekening pertama kamu.
+                {language === 'en' ? 'Enter information for your first account.' : 'Masukkan informasi rekening pertama kamu.'}
               </p>
             </div>
 
             <div className="flex flex-col gap-4">
               <Input
-                label="Nama Rekening"
-                placeholder="Contoh: BCA, GoPay"
+                label={t('account.name')}
+                placeholder={t('account.name_placeholder')}
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 error={errors.name}
@@ -107,14 +109,14 @@ export function OnboardingPage() {
               />
 
               <Select
-                label="Jenis Rekening"
+                label={t('account.type')}
                 options={accountTypeOptions}
                 value={form.type}
                 onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
               />
 
               <Input
-                label="Saldo Awal"
+                label={t('account.initial_balance')}
                 prefix="Rp"
                 inputMode="numeric"
                 value={form.initial_balance_display}
@@ -132,7 +134,7 @@ export function OnboardingPage() {
                 loading={saving}
                 className="mt-2"
               >
-                {saving ? 'Menyimpan...' : 'Simpan Rekening'}
+                {saving ? t('account.saving') : t('account.save')}
               </Button>
 
               <Button
@@ -141,7 +143,7 @@ export function OnboardingPage() {
                 onClick={() => setStep('welcome')}
                 disabled={saving}
               >
-                Kembali
+                {t('common.back')}
               </Button>
             </div>
           </>

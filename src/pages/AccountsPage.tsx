@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useI18n } from '@/contexts/I18nContext'
 import { getAccountsWithBalances } from '@/services/accounts.service'
 import { AccountCard } from '@/components/accounts/AccountCard'
 import { AccountForm } from '@/components/accounts/AccountForm'
@@ -13,6 +14,7 @@ import type { AccountWithBalance } from '@/types/account'
 
 export function AccountsPage() {
   const { user } = useAuth()
+  const { t } = useI18n()
   const [accounts, setAccounts] = useState<AccountWithBalance[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -25,11 +27,11 @@ export function AccountsPage() {
       const data = await getAccountsWithBalances(user.id)
       setAccounts(data as AccountWithBalance[])
     } catch {
-      setError('Gagal memuat rekening.')
+      setError(t('common.failed_load'))
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [user, t])
 
   useEffect(() => {
     loadAccounts()
@@ -42,23 +44,23 @@ export function AccountsPage() {
       {/* Page header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">Rekening</h1>
-          <p className="text-sm text-[var(--text-secondary)]">Kelola rekening keuangan kamu.</p>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">{t('account.title')}</h1>
+          <p className="text-sm text-[var(--text-secondary)]">{t('account.subtitle')}</p>
         </div>
         <Button
           onClick={() => setShowAddSheet(true)}
           size="sm"
           className="hidden md:flex"
         >
-          + Tambah Rekening
+          {t('account.add')}
         </Button>
       </div>
 
       {/* Total balance card */}
       <div className="bg-[var(--primary)] rounded-2xl p-5 mb-5 text-white">
-        <p className="text-sm opacity-80 mb-1">Total Saldo</p>
+        <p className="text-sm opacity-80 mb-1">{t('account.total')}</p>
         <p className="text-2xl font-bold tabular-nums">{formatCurrency(totalBalance)}</p>
-        <p className="text-xs opacity-60 mt-1">{accounts.length} rekening</p>
+        <p className="text-xs opacity-60 mt-1">{accounts.length} {t('account.count')}</p>
       </div>
 
       {/* Accounts list */}
@@ -69,14 +71,14 @@ export function AccountsPage() {
       ) : error ? (
         <div className="text-center py-8">
           <p className="text-sm text-[var(--danger)]">{error}</p>
-          <Button variant="ghost" onClick={loadAccounts} className="mt-2">Coba Lagi</Button>
+          <Button variant="ghost" onClick={loadAccounts} className="mt-2">{t('common.retry')}</Button>
         </div>
       ) : accounts.length === 0 ? (
         <EmptyState
           icon="🏦"
-          title="Belum ada rekening"
-          description="Tambahkan rekening untuk mulai mencatat keuangan."
-          actionLabel="+ Tambah Rekening"
+          title={t('account.empty')}
+          description={t('account.empty_sub')}
+          actionLabel={t('account.add')}
           onAction={() => setShowAddSheet(true)}
         />
       ) : (
@@ -95,7 +97,7 @@ export function AccountsPage() {
       <button
         onClick={() => setShowAddSheet(true)}
         className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[var(--primary)] text-white shadow-lg hover:bg-[var(--primary-hover)] transition-fast flex items-center justify-center md:hidden"
-        aria-label="Tambah Rekening"
+        aria-label={t('account.add')}
         style={{ bottom: 'calc(64px + env(safe-area-inset-bottom, 0px) + 16px)' }}
       >
         <Plus size={24} />
@@ -105,7 +107,7 @@ export function AccountsPage() {
       <BottomSheet
         isOpen={showAddSheet}
         onClose={() => setShowAddSheet(false)}
-        title="Tambah Rekening"
+        title={t('account.add')}
       >
         <AccountForm
           onSuccess={() => {

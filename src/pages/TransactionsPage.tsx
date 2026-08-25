@@ -1,27 +1,27 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Download } from 'lucide-react'
+import { Plus, Calendar } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
-import { getTransactions, getAllTransactionsInRange } from '@/services/transactions.service'
+import { useI18n } from '@/contexts/I18nContext'
+import { getTransactions } from '@/services/transactions.service'
 import { getAccountsWithBalances } from '@/services/accounts.service'
+import { getRecapSummary } from '@/services/recap.service'
 import type { Transaction, TransactionFilter, TransactionType, DatePreset } from '@/types/transaction'
 import { TransactionList } from '@/components/transactions/TransactionList'
 import { TransactionTypeSheet } from '@/components/transactions/TransactionTypeSheet'
 import { TransactionFilterBar } from '@/components/transactions/TransactionFilterBar'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
-import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { Skeleton } from '@/components/ui/Skeleton'
 import { formatCurrency } from '@/utils/currency'
-import { exportTransactionsToCSV } from '@/utils/exportCsv'
-import { getMonthStartString, getMonthEndString } from '@/utils/date'
+import { getMonthStartString, getMonthEndString, getMonthLabel } from '@/utils/date'
 
 export function TransactionsPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { showToast } = useToast()
+  const { t, language } = useI18n()
 
   const [filter, setFilter] = useState<TransactionFilter>({
     startDate: getMonthStartString(),
@@ -35,7 +35,7 @@ export function TransactionsPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [totalBalance, setTotalBalance] = useState(0)
   const [balanceLoading, setBalanceLoading] = useState(true)
-  const [exporting, setExporting] = useState(false)
+  const [periodStats, setPeriodStats] = useState({ income: 0, expense: 0 })
 
   const [showTypeSheet, setShowTypeSheet] = useState(false)
   const [selectedType, setSelectedType] = useState<TransactionType | null>(null)
@@ -46,16 +46,20 @@ export function TransactionsPage() {
     const f = newFilter ?? filter
     setLoading(true)
     try {
-      const { data, hasMore: more } = await getTransactions(user.id, f, 0)
+      const [{ data, hasMore: more }, summary] = await Promise.all([
+        getTransactions(user.id, f, 0),
+        getRecapSummary(user.id, f),
+      ])
       setTransactions(data)
       setHasMore(more)
       setPage(0)
+      setPeriodStats({ income: summary.income, expense: summary.expense })
     } catch {
-      showToast('Gagal memuat transaksi.', 'error')
+      showToast(t('common.failed_load'), 'error')
     } finally {
       setLoading(false)
     }
-  }, [user, filter, showToast])
+  }, [user, filter, showToast, t])
 
   const loadBalance = useCallback(async () => {
     if (!user) return
@@ -98,102 +102,105 @@ export function TransactionsPage() {
     setShowFormSheet(true)
   }
 
-  const handleExport = async () => {
-    if (!user) return
-    setExporting(true)
-    try {
-      const data = await getAllTransactionsInRange(user.id, filter)
-      if (data.length === 0) {
-        showToast('Tidak ada transaksi untuk diekspor.', 'info')
-        return
-      }
-      exportTransactionsToCSV(data)
-      showToast('Ekspor berhasil.', 'success')
-    } catch {
-      showToast('Gagal mengekspor data.', 'error')
-    } finally {
-      setExporting(false)
-    }
-  }
-
   const handleFormSuccess = () => {
     setShowFormSheet(false)
     loadTransactions()
     loadBalance()
   }
 
-  const TYPE_LABELS: Record<TransactionType, string> = {
-    income: 'Pemasukan',
-    expense: 'Pengeluaran',
-    transfer: 'Pindah Saldo',
+  const typeLabels: Record<TransactionType, string> = {
+    income: t('transaction.income'),
+    expense: t('transaction.expense'),
+    transfer: t('transaction.transfer'),
   }
 
+  // Month badge label (e.g. "Agustus 2026")
+  const currentDate = new Date()
+  const monthBadgeLabel = getMonthLabel(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    language === 'en' ? 'en-US' : 'id-ID'
+  )
+
   return (
-    <div className="px-4 py-5">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5">
-        <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">Transaksi</h1>
-          <p className="text-sm text-[var(--text-secondary)]">Kelola semua aktivitas keuangan.</p>
+    <div className="w-full max-w-md md:max-w-3xl lg:max-w-4xl mx-auto px-4 md:px-0 py-4 sm:py-6">
+      {/* === TOP HERO BALANCE CARD (as in design) === */}
+      <div className="bg-white dark:bg-[var(--surface)] rounded-[28px] p-5 sm:p-6 border border-slate-200/80 dark:border-[var(--border)] shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-none mb-5">
+        {/* Top Row: Title + Month badge */}
+        <div className="flex items-center justify-between">
+          <span className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400">
+            {t('transaction.total_balance')}
+          </span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <span>{monthBadgeLabel}</span>
+            <Calendar size={13} className="text-slate-500 dark:text-slate-400" />
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleExport}
-            disabled={exporting || loading}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-2)] transition-fast disabled:opacity-50"
-            aria-label="Ekspor CSV"
-          >
-            <Download size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">Ekspor</span>
-          </button>
-          <Button size="sm" onClick={() => setShowTypeSheet(true)} className="hidden md:flex">
-            + Tambah
-          </Button>
+
+        {/* Main Big Balance */}
+        <div className="my-3 sm:my-4">
+          {balanceLoading ? (
+            <div className="h-9 w-48 skeleton rounded-xl" />
+          ) : (
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#063d35] dark:text-emerald-400 tracking-tight tabular-nums">
+              {formatCurrency(totalBalance)}
+            </p>
+          )}
+        </div>
+
+        {/* Bottom Row: In & Out stats */}
+        <div className="flex items-center gap-8 pt-1">
+          <div>
+            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mb-0.5 font-medium">
+              {t('transaction.in')}
+            </p>
+            <p className="text-xs sm:text-sm font-bold text-[#10b981] dark:text-emerald-400 tabular-nums">
+              +{formatCurrency(periodStats.income)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mb-0.5 font-medium">
+              {t('transaction.out')}
+            </p>
+            <p className="text-xs sm:text-sm font-bold text-[#ef4444] dark:text-rose-400 tabular-nums">
+              -{formatCurrency(periodStats.expense)}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Total balance */}
-      <div className="bg-[var(--primary)] text-white rounded-2xl p-5 mb-4">
-        <p className="text-sm opacity-80 mb-1">Total Saldo</p>
-        {balanceLoading ? (
-          <div className="h-8 w-32 skeleton rounded-lg mt-1" />
-        ) : (
-          <p className="text-2xl font-bold tabular-nums">{formatCurrency(totalBalance)}</p>
-        )}
-      </div>
-
-      {/* Filter bar */}
-      <div className="mb-4">
+      {/* Filter Bar */}
+      <div className="mb-5">
         <TransactionFilterBar filter={filter} preset={preset} onApply={handleFilterChange} />
       </div>
 
-      {/* Transaction list */}
+      {/* Transaction List */}
       <TransactionList
         transactions={transactions}
         loading={loading}
         hasMore={hasMore}
         onLoadMore={handleLoadMore}
         loadingMore={loadingMore}
-        onItemPress={(t) => navigate(`/transactions/${t.id}`)}
+        onItemPress={(tItem) => navigate(`/transactions/${tItem.id}`)}
         emptySlot={
           <EmptyState
             icon="📋"
-            title="Belum ada transaksi"
-            description="Mulai catat pemasukan dan pengeluaranmu."
-            actionLabel="+ Tambah Transaksi"
+            title={t('transaction.empty')}
+            description={t('transaction.empty_sub')}
+            actionLabel={t('transaction.add')}
             onAction={() => setShowTypeSheet(true)}
           />
         }
       />
 
-      {/* Mobile FAB */}
+      {/* Floating Action Button (Dark teal squircle) */}
       <button
         onClick={() => setShowTypeSheet(true)}
-        className="fixed z-40 w-14 h-14 rounded-full bg-[var(--primary)] text-white shadow-lg hover:bg-[var(--primary-hover)] transition-fast flex items-center justify-center md:hidden right-4"
+        className="fixed z-40 w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#064e3b] dark:bg-emerald-600 hover:bg-[#043a2c] active:scale-95 text-white shadow-lg flex items-center justify-center right-4 md:right-8 transition-transform"
         style={{ bottom: 'calc(64px + env(safe-area-inset-bottom, 0px) + 16px)' }}
-        aria-label="Tambah Transaksi"
+        aria-label={t('transaction.add')}
       >
-        <Plus size={24} />
+        <Plus size={26} strokeWidth={2.5} />
       </button>
 
       {/* Type selector sheet */}
@@ -208,7 +215,7 @@ export function TransactionsPage() {
         <BottomSheet
           isOpen={showFormSheet}
           onClose={() => setShowFormSheet(false)}
-          title={TYPE_LABELS[selectedType]}
+          title={typeLabels[selectedType]}
         >
           <TransactionForm
             type={selectedType}

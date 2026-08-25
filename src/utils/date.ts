@@ -66,6 +66,16 @@ export function formatDateShort(dateStr: string, locale: string = 'id-ID'): stri
 }
 
 /**
+ * Format 'YYYY-MM-DD' to day and short month.
+ * e.g. '2026-08-15' → '15 Agt' (id) or 'Aug 15' (en)
+ */
+export function formatDayAndMonth(dateStr: string, locale: string = 'id-ID'): string {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  return date.toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+}
+
+/**
  * Check if a date string is today.
  */
 export function isToday(dateStr: string): boolean {

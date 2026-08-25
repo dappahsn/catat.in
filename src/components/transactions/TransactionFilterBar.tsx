@@ -3,6 +3,7 @@ import type { TransactionFilter, DatePreset } from '@/types/transaction'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { useI18n } from '@/contexts/I18nContext'
 import {
   getTodayString, getYesterdayString,
   getNDaysAgoString, getMonthStartString, getMonthEndString,
@@ -13,14 +14,6 @@ interface TransactionFilterProps {
   preset: DatePreset
   onApply: (filter: TransactionFilter, preset: DatePreset) => void
 }
-
-const PRESETS: { key: DatePreset; label: string }[] = [
-  { key: 'today',     label: 'Hari Ini' },
-  { key: 'yesterday', label: 'Kemarin' },
-  { key: '7days',     label: '7 Hari' },
-  { key: 'thisMonth', label: 'Bulan Ini' },
-  { key: 'custom',    label: 'Custom' },
-]
 
 function presetToFilter(preset: DatePreset): TransactionFilter | null {
   const today = getTodayString()
@@ -34,9 +27,18 @@ function presetToFilter(preset: DatePreset): TransactionFilter | null {
 }
 
 export function TransactionFilterBar({ filter, preset, onApply }: TransactionFilterProps) {
+  const { t, language } = useI18n()
   const [showCustomSheet, setShowCustomSheet] = useState(false)
   const [customStart, setCustomStart] = useState(filter.startDate)
   const [customEnd, setCustomEnd] = useState(filter.endDate)
+
+  const presets: { key: DatePreset; label: string }[] = [
+    { key: 'today',     label: t('filter.today') },
+    { key: 'yesterday', label: t('filter.yesterday') },
+    { key: '7days',     label: t('filter.7days') },
+    { key: 'thisMonth', label: t('filter.this_month') },
+    { key: 'custom',    label: t('filter.custom') },
+  ]
 
   const handlePreset = (key: DatePreset) => {
     if (key === 'custom') {
@@ -58,7 +60,7 @@ export function TransactionFilterBar({ filter, preset, onApply }: TransactionFil
   return (
     <>
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1" role="group" aria-label="Filter tanggal">
-        {PRESETS.map(({ key, label }) => (
+        {presets.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => handlePreset(key)}
@@ -75,17 +77,21 @@ export function TransactionFilterBar({ filter, preset, onApply }: TransactionFil
         ))}
       </div>
 
-      <BottomSheet isOpen={showCustomSheet} onClose={() => setShowCustomSheet(false)} title="Rentang Tanggal">
+      <BottomSheet
+        isOpen={showCustomSheet}
+        onClose={() => setShowCustomSheet(false)}
+        title={language === 'en' ? 'Date Range' : 'Rentang Tanggal'}
+      >
         <div className="flex flex-col gap-4 pb-2">
           <Input
-            label="Tanggal Awal"
+            label={t('filter.start_date')}
             type="date"
             value={customStart}
             max={getTodayString()}
             onChange={(e) => setCustomStart(e.target.value)}
           />
           <Input
-            label="Tanggal Akhir"
+            label={t('filter.end_date')}
             type="date"
             value={customEnd}
             min={customStart}
@@ -93,7 +99,7 @@ export function TransactionFilterBar({ filter, preset, onApply }: TransactionFil
             onChange={(e) => setCustomEnd(e.target.value)}
           />
           <Button fullWidth onClick={handleCustomApply} disabled={!customStart || !customEnd}>
-            Terapkan
+            {t('filter.apply')}
           </Button>
         </div>
       </BottomSheet>

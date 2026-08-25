@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import type { CategoryBreakdownItem } from '@/services/recap.service'
 import { formatCurrency } from '@/utils/currency'
+import { useI18n } from '@/contexts/I18nContext'
 
 const COLORS = [
   '#2563EB', '#16A34A', '#9333EA', '#EA580C', '#DC2626',
@@ -17,6 +18,7 @@ interface DonutChartProps {
 
 export function DonutChart({ data, type, onTypeChange, loading }: DonutChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
+  const { t } = useI18n()
 
   const total = data.reduce((s, d) => s + d.amount, 0)
   const activeItem = activeIndex !== null ? data[activeIndex] : null
@@ -33,7 +35,7 @@ export function DonutChart({ data, type, onTypeChange, loading }: DonutChartProp
           ].join(' ')}
           aria-pressed={type === 'expense'}
         >
-          Pengeluaran
+          {t('recap.chart_expense')}
         </button>
         <button
           onClick={() => onTypeChange('income')}
@@ -43,7 +45,7 @@ export function DonutChart({ data, type, onTypeChange, loading }: DonutChartProp
           ].join(' ')}
           aria-pressed={type === 'income'}
         >
-          Pemasukan
+          {t('recap.chart_income')}
         </button>
       </div>
 
@@ -53,7 +55,7 @@ export function DonutChart({ data, type, onTypeChange, loading }: DonutChartProp
         </div>
       ) : data.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-44 text-center">
-          <p className="text-sm text-[var(--text-muted)]">Belum ada data untuk periode ini.</p>
+          <p className="text-sm text-[var(--text-muted)]">{t('recap.empty')}</p>
         </div>
       ) : (
         <div className="flex flex-col items-center">
@@ -83,7 +85,7 @@ export function DonutChart({ data, type, onTypeChange, loading }: DonutChartProp
                 <Tooltip
                   formatter={(value: unknown) => {
                     const num = typeof value === 'number' ? value : Number(value) || 0
-                    return [formatCurrency(num), 'Jumlah']
+                    return [formatCurrency(num), t('detail.amount')]
                   }}
                   contentStyle={{
                     background: 'var(--surface)',
@@ -97,7 +99,7 @@ export function DonutChart({ data, type, onTypeChange, loading }: DonutChartProp
 
             {/* Center label */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <p className="text-xs text-[var(--text-muted)]">Total</p>
+              <p className="text-xs text-[var(--text-muted)]">{t('recap.total')}</p>
               <p className="text-sm font-bold text-[var(--text-primary)] tabular-nums text-center max-w-[90px] truncate">
                 {formatCurrency(activeItem?.amount ?? total)}
               </p>

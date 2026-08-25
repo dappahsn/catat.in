@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useI18n } from '@/contexts/I18nContext'
 import { getRecapSummary, getCategoryBreakdown } from '@/services/recap.service'
 import type { RecapSummary, CategoryBreakdownItem } from '@/services/recap.service'
 import type { TransactionFilter } from '@/types/transaction'
@@ -11,13 +12,14 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import {
   getMonthStartString, getMonthEndString, getTodayString,
-  getMonthLabel, getNDaysAgoString,
+  getMonthLabel,
 } from '@/utils/date'
 
 type TabType = 'realtime' | 'monthly' | 'custom'
 
 export function RecapPage() {
   const { user } = useAuth()
+  const { t, language } = useI18n()
   const [tab, setTab] = useState<TabType>('monthly')
   const [chartType, setChartType] = useState<'income' | 'expense'>('expense')
 
@@ -68,25 +70,35 @@ export function RecapPage() {
   useEffect(() => { loadData() }, [loadData])
 
   const monthDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1)
-  const monthLabel = getMonthLabel(monthDate.getFullYear(), monthDate.getMonth())
+  const monthLabel = getMonthLabel(
+    monthDate.getFullYear(),
+    monthDate.getMonth(),
+    language === 'en' ? 'en-US' : 'id-ID'
+  )
+
+  const tabLabels: Record<TabType, string> = {
+    realtime: t('recap.realtime'),
+    monthly: t('recap.monthly'),
+    custom: t('recap.custom'),
+  }
 
   return (
     <div className="px-4 py-5">
-      <h1 className="text-xl font-bold text-[var(--text-primary)] mb-5">Rekap</h1>
+      <h1 className="text-xl font-bold text-[var(--text-primary)] mb-5">{t('recap.title')}</h1>
 
       {/* Tab switcher */}
       <div className="flex gap-1 bg-[var(--surface-2)] rounded-xl p-1 mb-5">
-        {(['realtime', 'monthly', 'custom'] as const).map((t) => (
+        {(['realtime', 'monthly', 'custom'] as const).map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
             className={[
               'flex-1 py-2 rounded-lg text-xs font-medium transition-fast',
-              tab === t ? 'bg-[var(--surface)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-muted)]',
+              tab === tabKey ? 'bg-[var(--surface)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-muted)]',
             ].join(' ')}
-            aria-pressed={tab === t}
+            aria-pressed={tab === tabKey}
           >
-            {t === 'realtime' ? 'Realtime' : t === 'monthly' ? 'Bulanan' : 'Custom'}
+            {tabLabels[tabKey]}
           </button>
         ))}
       </div>
@@ -97,16 +109,16 @@ export function RecapPage() {
           <button
             onClick={() => setMonthOffset((m) => m - 1)}
             className="p-2 rounded-xl hover:bg-[var(--surface-2)] transition-fast"
-            aria-label="Bulan sebelumnya"
+            aria-label={t('recap.prev_month')}
           >
             <ChevronLeft size={20} className="text-[var(--text-secondary)]" />
           </button>
-          <p className="text-sm font-semibold text-[var(--text-primary)]">{monthLabel}</p>
+          <p className="text-sm font-semibold text-[var(--text-primary)] capitalize">{monthLabel}</p>
           <button
             onClick={() => setMonthOffset((m) => Math.min(m + 1, 0))}
             disabled={monthOffset >= 0}
             className="p-2 rounded-xl hover:bg-[var(--surface-2)] transition-fast disabled:opacity-40"
-            aria-label="Bulan berikutnya"
+            aria-label={t('recap.next_month')}
           >
             <ChevronRight size={20} className="text-[var(--text-secondary)]" />
           </button>
@@ -117,14 +129,14 @@ export function RecapPage() {
       {tab === 'custom' && (
         <div className="flex gap-2 mb-4 items-end">
           <Input
-            label="Dari"
+            label={t('filter.start_date')}
             type="date"
             value={customStart}
             max={getTodayString()}
             onChange={(e) => setCustomStart(e.target.value)}
           />
           <Input
-            label="Sampai"
+            label={t('filter.end_date')}
             type="date"
             value={customEnd}
             min={customStart}
@@ -138,7 +150,7 @@ export function RecapPage() {
             size="sm"
             className="flex-shrink-0 mb-0.5"
           >
-            Terapkan
+            {t('filter.apply')}
           </Button>
         </div>
       )}
@@ -155,7 +167,7 @@ export function RecapPage() {
       <DonutChart
         data={breakdown}
         type={chartType}
-        onTypeChange={(t) => setChartType(t)}
+        onTypeChange={(tp) => setChartType(tp)}
         loading={breakdownLoading}
       />
 
