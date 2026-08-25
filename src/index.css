@@ -1,0 +1,214 @@
+@import "tailwindcss";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+
+/* =============================================
+   CSS VARIABLE SYSTEM — Theme & Accent Colors
+   ============================================= */
+
+:root {
+  /* --- Base Accent (Blue default) --- */
+  --accent-h: 220;
+  --accent-s: 91%;
+  --accent-l: 48%;
+
+  --primary: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
+  --primary-hover: hsl(var(--accent-h) var(--accent-s) 40%);
+  --primary-light: hsl(var(--accent-h) var(--accent-s) 95%);
+  --primary-foreground: #ffffff;
+
+  /* --- Semantic Colors (never change with accent) --- */
+  --success: #16a34a;
+  --success-light: #dcfce7;
+  --success-foreground: #15803d;
+  --danger: #dc2626;
+  --danger-light: #fee2e2;
+  --danger-foreground: #b91c1c;
+  --warning: #d97706;
+  --warning-light: #fef3c7;
+
+  /* --- Light Theme (default) --- */
+  --background: #f8f9fa;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --border: #e2e8f0;
+  --border-subtle: #f1f5f9;
+
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  --nav-bg: #ffffff;
+  --nav-border: #e2e8f0;
+
+  --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  --modal-overlay: rgb(0 0 0 / 0.4);
+}
+
+/* --- Dark Theme --- */
+.dark {
+  --background: #0f172a;
+  --surface: #1e293b;
+  --surface-2: #334155;
+  --border: #334155;
+  --border-subtle: #1e293b;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --nav-bg: #1e293b;
+  --nav-border: #334155;
+
+  --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+  --modal-overlay: rgb(0 0 0 / 0.6);
+
+  --success-light: #14532d;
+  --danger-light: #450a0a;
+  --warning-light: #451a03;
+}
+
+/* --- Accent Color Presets --- */
+[data-accent="blue"]   { --accent-h: 220; --accent-s: 91%; --accent-l: 48%; }
+[data-accent="green"]  { --accent-h: 142; --accent-s: 71%; --accent-l: 38%; }
+[data-accent="purple"] { --accent-h: 262; --accent-s: 83%; --accent-l: 54%; }
+[data-accent="orange"] { --accent-h: 25;  --accent-s: 95%; --accent-l: 45%; }
+[data-accent="red"]    { --accent-h: 0;   --accent-s: 84%; --accent-l: 48%; }
+
+/* =============================================
+   BASE STYLES
+   ============================================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--background);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =============================================
+   SAFE AREA UTILITIES
+   ============================================= */
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pb-safe {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+
+/* =============================================
+   SCROLLBAR
+   ============================================= */
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* =============================================
+   FOCUS STYLES (Accessibility)
+   ============================================= */
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* =============================================
+   SKELETON ANIMATION
+   ============================================= */
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--border) 50%,
+    var(--surface-2) 75%
+  );
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+/* =============================================
+   TOAST ANIMATION
+   ============================================= */
+
+@keyframes toast-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes toast-out {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(100%); opacity: 0; }
+}
+
+.toast-enter { animation: toast-in 0.2s ease forwards; }
+.toast-exit  { animation: toast-out 0.2s ease forwards; }
+
+/* =============================================
+   BOTTOM SHEET ANIMATION
+   ============================================= */
+
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes sheet-out {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+
+.sheet-enter { animation: sheet-in 0.25s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.sheet-exit  { animation: sheet-out 0.2s ease-in forwards; }
+
+/* =============================================
+   MODAL ANIMATION
+   ============================================= */
+
+@keyframes modal-in {
+  from { transform: scale(0.96); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.modal-enter { animation: modal-in 0.15s ease forwards; }
+
+/* =============================================
+   TRANSITION UTILITIES
+   ============================================= */
+
+.transition-fast { transition: all 0.15s ease; }
+.transition-base { transition: all 0.2s ease; }
+
+/* =============================================
+   NUMBER FORMATTING HELPERS
+   ============================================= */
+
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+/* Amount colors */
+.amount-income   { color: var(--success-foreground); }
+.amount-expense  { color: var(--danger-foreground); }
+.amount-transfer { color: var(--text-secondary); }
