@@ -65,10 +65,10 @@ export function TransactionFilterBar({ filter, preset, onApply }: TransactionFil
             key={key}
             onClick={() => handlePreset(key)}
             className={[
-              'flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-fast border',
+              'flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border shadow-2xs',
               preset === key
-                ? 'bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]'
-                : 'bg-[var(--surface)] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--primary)] hover:text-[var(--primary)]',
+                ? 'bg-[#064e3b] dark:bg-[#064e3b] text-white dark:text-[#86efac] border-[#064e3b]'
+                : 'bg-white dark:bg-[#17181c] text-slate-600 dark:text-slate-400 border-slate-200/90 dark:border-[#262930] hover:border-slate-300 dark:hover:border-[#383d47] hover:text-slate-900 dark:hover:text-white',
             ].join(' ')}
             aria-pressed={preset === key}
           >

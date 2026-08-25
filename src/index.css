@@ -50,25 +50,30 @@
 
 /* --- Dark Theme --- */
 .dark {
-  --background: #0f172a;
-  --surface: #1e293b;
-  --surface-2: #334155;
-  --border: #334155;
-  --border-subtle: #1e293b;
+  --background: #0d0f12;
+  --surface: #17181c;
+  --surface-2: #22242a;
+  --border: #262930;
+  --border-subtle: #1d1f24;
 
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
 
-  --nav-bg: #1e293b;
-  --nav-border: #334155;
+  --nav-bg: #0f1013;
+  --nav-border: #22242a;
 
-  --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
-  --modal-overlay: rgb(0 0 0 / 0.6);
+  --card-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.6);
+  --modal-overlay: rgb(0 0 0 / 0.75);
 
-  --success-light: #14532d;
-  --danger-light: #450a0a;
-  --warning-light: #451a03;
+  --success: #22c55e;
+  --success-light: #133827;
+  --success-foreground: #4ade80;
+  --danger: #ef4444;
+  --danger-light: #3b181a;
+  --danger-foreground: #f87171;
+  --warning: #f59e0b;
+  --warning-light: #3b2813;
 }
 
 /* --- Accent Color Presets --- */

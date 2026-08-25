@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { LayoutList, Wallet, BarChart2, Settings, LogOut, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useI18n } from '@/contexts/I18nContext'
@@ -16,8 +16,11 @@ export function DesktopNavbar() {
   const { user, signOut } = useAuth()
   const { t } = useI18n()
   const { showToast } = useToast()
+  const location = useLocation()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const isSettingsPage = location.pathname.startsWith('/settings')
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -41,7 +44,11 @@ export function DesktopNavbar() {
   const name = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? user?.email ?? 'Pengguna'
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200/80 dark:border-slate-800 transition-colors">
+    <header
+      className={`sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200/80 dark:border-slate-800 transition-colors ${
+        isSettingsPage ? 'hidden md:block' : 'block'
+      }`}
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
         <NavLink to="/transactions" className="flex items-center select-none focus:outline-none" aria-label="catat.in">

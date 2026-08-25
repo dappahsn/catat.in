@@ -34,7 +34,7 @@ export function TransactionItem({ transaction: t, onPress, showDate = false }: T
     subtitle = language === 'en' ? 'Internal Transfer' : 'Transfer Internal'
     if (t.notes) subtitle += ` • ${t.notes}`
     iconContent = <ArrowLeftRight size={18} />
-    bgClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+    bgClass = 'bg-slate-100 text-slate-700 dark:bg-[#242730] dark:text-[#cbd5e1]'
     amountSign = ''
     amountClass = 'text-slate-900 dark:text-white font-bold'
   } else {
@@ -59,20 +59,20 @@ export function TransactionItem({ transaction: t, onPress, showDate = false }: T
     )
 
     if (isIncome) {
-      bgClass = 'bg-[#d1fae5] text-[#065f46] dark:bg-emerald-950/60 dark:text-emerald-300'
+      bgClass = 'bg-[#d1fae5] text-[#065f46] dark:bg-[#133827] dark:text-[#6ee7b7]'
       amountSign = '+ '
-      amountClass = 'text-[#10b981] dark:text-emerald-400 font-bold'
+      amountClass = 'text-[#10b981] dark:text-[#4ade80] font-bold'
     } else {
-      bgClass = 'bg-[#fee2e2] text-[#991b1b] dark:bg-rose-950/60 dark:text-rose-300'
+      bgClass = 'bg-[#fee2e2] text-[#991b1b] dark:bg-[#3b181a] dark:text-[#fca5a5]'
       amountSign = '- '
-      amountClass = 'text-[#ef4444] dark:text-rose-400 font-bold'
+      amountClass = 'text-[#ef4444] dark:text-[#f87171] font-bold'
     }
   }
 
   return (
     <button
       onClick={onPress}
-      className="w-full flex items-center gap-3.5 px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors text-left min-h-[64px]"
+      className="w-full flex items-center gap-3.5 px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-[#22242c]/60 transition-colors text-left min-h-[64px]"
       aria-label={`${title}, ${amountSign}${formatCurrency(t.amount)}`}
     >
       {/* Icon Circle */}
