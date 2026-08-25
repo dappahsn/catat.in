@@ -280,9 +280,13 @@ export function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="px-4 py-5 max-w-md mx-auto">
-        <div className="skeleton h-7 w-32 rounded mb-6 mx-auto" />
-        {[1, 2, 3].map((i) => <div key={i} className="skeleton h-28 rounded-2xl mb-4" />)}
+      <div className="w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-4 md:px-0 py-6 space-y-6">
+        <div className="skeleton h-8 w-36 rounded mb-6" />
+        <div className="skeleton h-24 rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="skeleton h-64 rounded-2xl" />
+          <div className="skeleton h-52 rounded-2xl" />
+        </div>
       </div>
     )
   }
@@ -304,250 +308,257 @@ export function SettingsPage() {
 
   return (
     <div className="min-h-screen pb-12">
-      {/* Header */}
-      <div className="py-4 px-4 text-center">
-        <h1 className="text-2xl font-bold text-[#063d35] dark:text-emerald-400">
-          Settings
-        </h1>
-      </div>
+      <div className="w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-4 md:px-0 py-4 sm:py-6 space-y-6 sm:space-y-8">
+        {/* Header */}
+        <div className="text-center md:text-left">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#063d35] dark:text-emerald-400">
+            Settings
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Kelola akun, preferensi tampilan, dan data aplikasi Anda
+          </p>
+        </div>
 
-      <div className="px-4 max-w-md mx-auto space-y-6">
         {/* === SECTION 1: ACCOUNT === */}
         <div>
-          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2.5">
+          <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-2.5">
             Account
           </h2>
-          <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] p-4 shadow-sm flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3.5 min-w-0">
+          <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] p-4 sm:p-5 shadow-xs flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt={name}
-                  className="w-14 h-14 rounded-full object-cover border border-slate-100 dark:border-slate-700 flex-shrink-0"
+                  className="w-13 h-13 sm:w-16 sm:h-16 rounded-full object-cover border border-slate-100 dark:border-slate-700 flex-shrink-0 shadow-2xs"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xl flex-shrink-0">
+                <div className="w-13 h-13 sm:w-16 sm:h-16 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xl sm:text-2xl flex-shrink-0 shadow-2xs">
                   {name[0]?.toUpperCase()}
                 </div>
               )}
               <div className="min-w-0">
-                <p className="font-bold text-base text-slate-900 dark:text-white truncate">
+                <p className="font-bold text-base sm:text-lg text-slate-900 dark:text-white truncate">
                   {name}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate mt-0.5">
                   {email}
                 </p>
               </div>
             </div>
             <button
               onClick={() => setShowLogoutDialog(true)}
-              className="px-4 py-2 bg-[#b91c1c] hover:bg-red-700 active:bg-red-800 text-white font-semibold text-xs rounded-lg transition-colors flex-shrink-0 shadow-sm"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 bg-[#b91c1c] hover:bg-red-700 active:bg-red-800 text-white font-semibold text-xs sm:text-sm rounded-xl transition-colors flex-shrink-0 shadow-2xs"
             >
               Logout
             </button>
           </div>
         </div>
 
-        {/* === SECTION 2: PREFERENCES === */}
-        <div>
-          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2.5">
-            Preferences
-          </h2>
-          <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] shadow-sm divide-y divide-slate-100 dark:divide-[var(--border)] overflow-hidden">
-            {/* 1. Daily Reminder */}
-            <div className="p-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
-                  <Bell size={20} />
+        {/* === SECTION 2 & 3: GRID ON DESKTOP (Side by side on lg:, stacked on mobile) === */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
+          {/* === SECTION 2: PREFERENCES === */}
+          <div className="flex flex-col">
+            <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-2.5">
+              Preferences
+            </h2>
+            <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] shadow-xs divide-y divide-slate-100 dark:divide-[var(--border)] overflow-hidden">
+              {/* 1. Daily Reminder */}
+              <div className="p-4 sm:p-4.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                    <Bell size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                      Daily Reminder
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate">
+                      {reminderEnabled ? `Aktif pukul ${reminderTime}` : 'Remind me to record transactions'}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-slate-900 dark:text-white">
-                    Daily Reminder
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                    {reminderEnabled ? `Aktif pukul ${reminderTime}` : 'Remind me to record transactions'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {reminderEnabled && (
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {reminderEnabled && (
+                    <button
+                      onClick={() => {
+                        setTempReminderTime(reminderTime)
+                        setShowTimeModal(true)
+                      }}
+                      className="p-1.5 px-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-1.5 transition-colors border border-slate-200 dark:border-slate-700"
+                      title="Atur Waktu"
+                    >
+                      <Clock size={14} />
+                      <span className="font-medium">{reminderTime}</span>
+                    </button>
+                  )}
                   <button
-                    onClick={() => {
-                      setTempReminderTime(reminderTime)
-                      setShowTimeModal(true)
-                    }}
-                    className="p-1.5 text-xs text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-1 transition-colors"
-                    title="Atur Waktu"
-                  >
-                    <Clock size={14} />
-                    <span>{reminderTime}</span>
-                  </button>
-                )}
-                <button
-                  role="switch"
-                  aria-checked={reminderEnabled}
-                  onClick={() => handleReminderToggle(!reminderEnabled)}
-                  disabled={savingReminder}
-                  className={[
-                    'relative w-12 h-6 rounded-full transition-all focus-visible:ring-2 focus-visible:ring-[var(--primary)]',
-                    reminderEnabled ? 'bg-[#064e3b] dark:bg-emerald-600' : 'bg-slate-200 dark:bg-slate-700',
-                    'disabled:opacity-50 flex-shrink-0',
-                  ].join(' ')}
-                >
-                  <span
+                    role="switch"
+                    aria-checked={reminderEnabled}
+                    onClick={() => handleReminderToggle(!reminderEnabled)}
+                    disabled={savingReminder}
                     className={[
-                      'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-150',
-                      reminderEnabled ? 'translate-x-6' : 'translate-x-0',
+                      'relative w-12 h-6 rounded-full transition-all focus-visible:ring-2 focus-visible:ring-[var(--primary)]',
+                      reminderEnabled ? 'bg-[#064e3b] dark:bg-emerald-600' : 'bg-slate-200 dark:bg-slate-700',
+                      'disabled:opacity-50 flex-shrink-0',
                     ].join(' ')}
-                  />
-                </button>
+                  >
+                    <span
+                      className={[
+                        'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-150',
+                        reminderEnabled ? 'translate-x-6' : 'translate-x-0',
+                      ].join(' ')}
+                    />
+                  </button>
+                </div>
               </div>
+
+              {/* 2. Theme */}
+              <button
+                onClick={() => setShowThemeModal(true)}
+                className="w-full p-4 sm:p-4.5 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                    <Palette size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                      Theme
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 capitalize">
+                      {themeLabels[theme]}
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight size={18} className="text-slate-400 flex-shrink-0" />
+              </button>
+
+              {/* 3. Language */}
+              <button
+                onClick={() => setShowLanguageModal(true)}
+                className="w-full p-4 sm:p-4.5 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                    <Globe size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                      Language
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                      {languageLabels[language]}
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight size={18} className="text-slate-400 flex-shrink-0" />
+              </button>
+
+              {/* 4. Categories */}
+              <button
+                onClick={() => setShowCategoriesModal(true)}
+                className="w-full p-4 sm:p-4.5 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                    <Tag size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                      Transaction Categories
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                      {categories.length} Kategori terdaftar
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight size={18} className="text-slate-400 flex-shrink-0" />
+              </button>
             </div>
-
-            {/* 2. Theme */}
-            <button
-              onClick={() => setShowThemeModal(true)}
-              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
-            >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
-                  <Palette size={20} />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-slate-900 dark:text-white">
-                    Theme
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">
-                    {themeLabels[theme]}
-                  </p>
-                </div>
-              </div>
-              <ChevronRight size={18} className="text-slate-400 flex-shrink-0" />
-            </button>
-
-            {/* 3. Language */}
-            <button
-              onClick={() => setShowLanguageModal(true)}
-              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
-            >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
-                  <Globe size={20} />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-slate-900 dark:text-white">
-                    Language
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {languageLabels[language]}
-                  </p>
-                </div>
-              </div>
-              <ChevronRight size={18} className="text-slate-400 flex-shrink-0" />
-            </button>
-
-            {/* 4. Categories */}
-            <button
-              onClick={() => setShowCategoriesModal(true)}
-              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
-            >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
-                  <Tag size={20} />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-slate-900 dark:text-white">
-                    Transaction Categories
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {categories.length} Kategori terdaftar
-                  </p>
-                </div>
-              </div>
-              <ChevronRight size={18} className="text-slate-400 flex-shrink-0" />
-            </button>
           </div>
-        </div>
 
-        {/* === SECTION 3: DATA MANAGEMENT === */}
-        <div>
-          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2.5">
-            Data Management
-          </h2>
-          <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] shadow-sm divide-y divide-slate-100 dark:divide-[var(--border)] overflow-hidden">
-            {/* 1. Backup Data */}
-            <button
-              onClick={handleBackup}
-              disabled={backingUp}
-              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors disabled:opacity-60"
-            >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
-                  <CloudUpload size={20} />
+          {/* === SECTION 3: DATA MANAGEMENT === */}
+          <div className="flex flex-col">
+            <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-2.5">
+              Data Management
+            </h2>
+            <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] shadow-xs divide-y divide-slate-100 dark:divide-[var(--border)] overflow-hidden">
+              {/* 1. Backup Data */}
+              <button
+                onClick={handleBackup}
+                disabled={backingUp}
+                className="w-full p-4 sm:p-4.5 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors disabled:opacity-60"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
+                    <CloudUpload size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                      Backup Data
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                      {backingUp ? 'Menyiapkan file backup...' : 'Save to Google Drive / JSON file'}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-slate-900 dark:text-white">
-                    Backup Data
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {backingUp ? 'Menyiapkan file backup...' : 'Save to Google Drive / JSON file'}
-                  </p>
-                </div>
-              </div>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                Backup
-              </span>
-            </button>
+                <span className="text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                  Backup
+                </span>
+              </button>
 
-            {/* 2. Restore Data */}
-            <label className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
-              <input
-                type="file"
-                accept=".json"
-                className="sr-only"
-                onChange={handleRestoreFileSelect}
-              />
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
-                  <History size={20} />
+              {/* 2. Restore Data */}
+              <label className="w-full p-4 sm:p-4.5 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
+                <input
+                  type="file"
+                  accept=".json"
+                  className="sr-only"
+                  onChange={handleRestoreFileSelect}
+                />
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
+                    <History size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                      Restore Data
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                      Load from backup file
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-slate-900 dark:text-white">
-                    Restore Data
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Load from backup file
-                  </p>
-                </div>
-              </div>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                Pilih File
-              </span>
-            </label>
+                <span className="text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                  Pilih File
+                </span>
+              </label>
 
-            {/* 3. Delete All Data */}
-            <button
-              onClick={() => setShowDeleteDialog(true)}
-              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors"
-            >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-red-100/70 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center flex-shrink-0">
-                  <Trash2 size={20} />
+              {/* 3. Delete All Data */}
+              <button
+                onClick={() => setShowDeleteDialog(true)}
+                className="w-full p-4 sm:p-4.5 flex items-center justify-between gap-3 text-left hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-red-100/70 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center flex-shrink-0">
+                    <Trash2 size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm sm:text-base text-red-700 dark:text-red-400">
+                      Delete All Data
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                      This action cannot be undone
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-red-700 dark:text-red-400">
-                    Delete All Data
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    This action cannot be undone
-                  </p>
-                </div>
-              </div>
-              <ChevronRight size={18} className="text-red-400 flex-shrink-0" />
-            </button>
+                <ChevronRight size={18} className="text-red-400 flex-shrink-0" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
 
       {/* ========================================================================= */}
       {/* MODALS & DIALOGS */}

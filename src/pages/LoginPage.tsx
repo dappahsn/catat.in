@@ -31,20 +31,20 @@ export function LoginPage() {
   }
 
   return (
-    <div className="w-full max-w-[380px] flex flex-col items-center">
+    <div className="w-full max-w-[380px] sm:max-w-[430px] flex flex-col items-center">
       {/* Main Card */}
-      <div className="w-full bg-white dark:bg-[var(--surface)] rounded-[32px] p-8 sm:p-10 text-center border border-slate-100 dark:border-[var(--border)] shadow-[0_2px_18px_rgba(0,0,0,0.03)] dark:shadow-none flex flex-col items-center">
+      <div className="w-full bg-white dark:bg-[var(--surface)] rounded-[32px] sm:rounded-[36px] p-8 sm:p-11 text-center border border-slate-100 dark:border-[var(--border)] shadow-[0_2px_18px_rgba(0,0,0,0.03)] dark:shadow-none flex flex-col items-center">
         {/* Logo Circle Badge */}
-        <div className="w-28 h-28 rounded-full bg-white dark:bg-slate-800/90 border-[7px] border-[#f0f2f5] dark:border-slate-800 flex items-center justify-center mb-6 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white dark:bg-slate-800/90 border-[7px] sm:border-[8px] border-[#f0f2f5] dark:border-slate-800 flex items-center justify-center mb-6 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
           <img
             src="/icons/logo-text.png"
             alt="catat.in"
-            className="w-20 object-contain select-none"
+            className="w-20 sm:w-24 object-contain select-none"
           />
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl sm:text-[26px] font-bold text-[#063d35] dark:text-emerald-400 tracking-tight mb-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#063d35] dark:text-emerald-400 tracking-tight mb-3">
           catat.in
         </h1>
 
@@ -90,7 +90,7 @@ export function LoginPage() {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={signingIn || loading}
-          className="w-full h-12 px-6 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-900 dark:text-white font-medium text-sm flex items-center justify-center gap-3 transition-all duration-150 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow"
+          className="w-full h-12 sm:h-13 px-6 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-900 dark:text-white font-medium text-sm sm:text-base flex items-center justify-center gap-3 transition-all duration-150 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow"
         >
           {signingIn || loading ? (
             <>
@@ -102,7 +102,7 @@ export function LoginPage() {
             </>
           ) : (
             <>
-              <svg className="w-[18px] h-[18px] flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+              <svg className="w-[18px] h-[18px] sm:w-5 sm:h-5 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
