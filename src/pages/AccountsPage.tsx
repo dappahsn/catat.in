@@ -40,38 +40,34 @@ export function AccountsPage() {
   const totalBalance = accounts.reduce((sum, a) => sum + a.current_balance, 0)
 
   return (
-    <div className="px-4 py-5">
-      {/* Page header */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">{t('account.title')}</h1>
-          <p className="text-sm text-[var(--text-secondary)]">{t('account.subtitle')}</p>
-        </div>
-        <Button
-          onClick={() => setShowAddSheet(true)}
-          size="sm"
-          className="hidden md:flex"
-        >
-          {t('account.add')}
-        </Button>
+    <div className="w-full max-w-md md:max-w-3xl lg:max-w-4xl mx-auto px-4 md:px-0 py-4 sm:py-6 pb-24">
+      {/* Hero Total Balance Card */}
+      <div className="bg-[#f8f9fa] dark:bg-[#17181c] rounded-[24px] sm:rounded-[28px] p-6 sm:p-7 border border-slate-100 dark:border-[#262930] shadow-[0_2px_12px_rgba(0,0,0,0.02)] dark:shadow-none mb-4 flex flex-col items-center justify-center text-center">
+        <span className="uppercase tracking-wider text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+          {t('account.total')}
+        </span>
+        {loading ? (
+          <div className="h-9 w-48 skeleton rounded-xl my-1" />
+        ) : (
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#063d35] dark:text-[#5eead4] tracking-tight tabular-nums">
+            {formatCurrency(totalBalance)}
+          </p>
+        )}
       </div>
 
-      {/* Total balance card */}
-      <div className="bg-[var(--primary)] rounded-2xl p-5 mb-5 text-white">
-        <p className="text-sm opacity-80 mb-1">{t('account.total')}</p>
-        <p className="text-2xl font-bold tabular-nums">{formatCurrency(totalBalance)}</p>
-        <p className="text-xs opacity-60 mt-1">{accounts.length} {t('account.count')}</p>
-      </div>
-
-      {/* Accounts list */}
+      {/* Accounts List */}
       {loading ? (
         <div className="flex flex-col gap-3">
-          {[1, 2, 3].map((i) => <AccountCardSkeleton key={i} />)}
+          {[1, 2, 3, 4].map((i) => (
+            <AccountCardSkeleton key={i} />
+          ))}
         </div>
       ) : error ? (
-        <div className="text-center py-8">
-          <p className="text-sm text-[var(--danger)]">{error}</p>
-          <Button variant="ghost" onClick={loadAccounts} className="mt-2">{t('common.retry')}</Button>
+        <div className="text-center py-8 bg-white dark:bg-[#17181c] rounded-2xl border border-slate-200/80 dark:border-[#262930] p-6">
+          <p className="text-sm font-medium text-red-500 mb-3">{error}</p>
+          <Button variant="ghost" onClick={loadAccounts}>
+            {t('common.retry')}
+          </Button>
         </div>
       ) : accounts.length === 0 ? (
         <EmptyState
@@ -93,17 +89,17 @@ export function AccountsPage() {
         </div>
       )}
 
-      {/* Mobile FAB */}
+      {/* Floating Action Button (FAB) */}
       <button
         onClick={() => setShowAddSheet(true)}
-        className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[var(--primary)] text-white shadow-lg hover:bg-[var(--primary-hover)] transition-fast flex items-center justify-center md:hidden"
-        aria-label={t('account.add')}
+        className="fixed z-40 w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#064e3b] dark:bg-[#86efac] text-white dark:text-[#064e3b] hover:bg-[#043a2c] dark:hover:bg-[#6ee7b7] shadow-lg flex items-center justify-center right-4 md:right-8 transition-all active:scale-95"
         style={{ bottom: 'calc(64px + env(safe-area-inset-bottom, 0px) + 16px)' }}
+        aria-label={t('account.add')}
       >
-        <Plus size={24} />
+        <Plus size={26} strokeWidth={2.5} />
       </button>
 
-      {/* Add Account Sheet */}
+      {/* Add Account Bottom Sheet */}
       <BottomSheet
         isOpen={showAddSheet}
         onClose={() => setShowAddSheet(false)}
