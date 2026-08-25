@@ -30,6 +30,20 @@ export function getMonthEndString(date = new Date()): string {
 }
 
 /**
+ * Get start of current year as 'YYYY-MM-DD'.
+ */
+export function getYearStartString(date = new Date()): string {
+  return `${date.getFullYear()}-01-01`
+}
+
+/**
+ * Get end of current year as 'YYYY-MM-DD'.
+ */
+export function getYearEndString(date = new Date()): string {
+  return `${date.getFullYear()}-12-31`
+}
+
+/**
  * Get start of N days ago as 'YYYY-MM-DD'.
  */
 export function getNDaysAgoString(days: number): string {

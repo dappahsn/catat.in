@@ -15,7 +15,7 @@ import { BottomSheet } from '@/components/ui/BottomSheet'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatCurrency } from '@/utils/currency'
-import { getMonthStartString, getMonthEndString, getMonthLabel } from '@/utils/date'
+import { getMonthStartString, getMonthEndString, getMonthLabel, formatDayAndMonth } from '@/utils/date'
 
 export function TransactionsPage() {
   const { user } = useAuth()
@@ -114,25 +114,40 @@ export function TransactionsPage() {
     transfer: t('transaction.transfer'),
   }
 
-  // Month badge label (e.g. "Agustus 2026")
-  const currentDate = new Date()
-  const monthBadgeLabel = getMonthLabel(
-    currentDate.getFullYear(),
-    currentDate.getMonth(),
-    language === 'en' ? 'en-US' : 'id-ID'
-  )
+  const getBadgeLabel = () => {
+    const currentDate = new Date()
+    switch (preset) {
+      case 'today':
+        return t('filter.today')
+      case 'yesterday':
+        return t('filter.yesterday')
+      case '7days':
+        return t('filter.7days')
+      case 'thisYear':
+        return `${currentDate.getFullYear()}`
+      case 'custom':
+        return `${formatDayAndMonth(filter.startDate, language === 'en' ? 'en-US' : 'id-ID')} - ${formatDayAndMonth(filter.endDate, language === 'en' ? 'en-US' : 'id-ID')}`
+      case 'thisMonth':
+      default:
+        return getMonthLabel(
+          currentDate.getFullYear(),
+          currentDate.getMonth(),
+          language === 'en' ? 'en-US' : 'id-ID'
+        )
+    }
+  }
 
   return (
     <div className="w-full max-w-md md:max-w-3xl lg:max-w-4xl mx-auto px-4 md:px-0 py-4 sm:py-6">
-      {/* === TOP HERO BALANCE CARD (as in design) === */}
+      {/* === TOP HERO BALANCE CARD === */}
       <div className="bg-white dark:bg-[#17181c] rounded-[28px] p-5 sm:p-6 border border-slate-200/80 dark:border-[#262930] shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-none mb-5">
-        {/* Top Row: Title + Month badge */}
+        {/* Top Row: Title + Filter Range badge */}
         <div className="flex items-center justify-between">
           <span className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400">
             {t('transaction.total_balance')}
           </span>
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-[#22242a] text-xs font-semibold text-slate-700 dark:text-slate-300">
-            <span>{monthBadgeLabel}</span>
+            <span>{getBadgeLabel()}</span>
             <Calendar size={13} className="text-slate-500 dark:text-slate-400" />
           </div>
         </div>
@@ -148,7 +163,7 @@ export function TransactionsPage() {
           )}
         </div>
 
-        {/* Bottom Row: In & Out stats */}
+        {/* Bottom Row: In & Out stats for current selected period */}
         <div className="flex items-center gap-8 pt-1">
           <div>
             <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mb-0.5 font-medium">
@@ -169,7 +184,7 @@ export function TransactionsPage() {
         </div>
       </div>
 
-      {/* Filter Bar */}
+      {/* Filter Bar with: Hari Ini, Kemarin, 7 Hari Terakhir, Bulan Ini, Tahun Ini, Custom */}
       <div className="mb-5">
         <TransactionFilterBar filter={filter} preset={preset} onApply={handleFilterChange} />
       </div>
@@ -193,7 +208,7 @@ export function TransactionsPage() {
         }
       />
 
-      {/* Floating Action Button (Dark teal in light mode, bright mint in dark mode) */}
+      {/* Floating Action Button */}
       <button
         onClick={() => setShowTypeSheet(true)}
         className="fixed z-40 w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#064e3b] dark:bg-[#86efac] hover:bg-[#043a2c] dark:hover:bg-[#6ee7b7] text-white dark:text-[#064e3b] shadow-lg flex items-center justify-center right-4 md:right-8 transition-all active:scale-95"

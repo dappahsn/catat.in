@@ -24,7 +24,7 @@ export interface TransactionFilter {
   accountId?: string
 }
 
-export type DatePreset = 'today' | 'yesterday' | '7days' | 'thisMonth' | 'custom'
+export type DatePreset = 'today' | 'yesterday' | '7days' | 'thisMonth' | 'thisYear' | 'custom'
 
 export interface CreateTransactionInput {
   type: TransactionType

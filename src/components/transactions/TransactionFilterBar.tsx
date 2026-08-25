@@ -7,6 +7,7 @@ import { useI18n } from '@/contexts/I18nContext'
 import {
   getTodayString, getYesterdayString,
   getNDaysAgoString, getMonthStartString, getMonthEndString,
+  getYearStartString, getYearEndString,
 } from '@/utils/date'
 
 interface TransactionFilterProps {
@@ -22,6 +23,7 @@ function presetToFilter(preset: DatePreset): TransactionFilter | null {
     case 'yesterday': return { startDate: getYesterdayString(), endDate: getYesterdayString() }
     case '7days':     return { startDate: getNDaysAgoString(7), endDate: today }
     case 'thisMonth': return { startDate: getMonthStartString(), endDate: getMonthEndString() }
+    case 'thisYear':  return { startDate: getYearStartString(), endDate: getYearEndString() }
     default:          return null
   }
 }
@@ -37,6 +39,7 @@ export function TransactionFilterBar({ filter, preset, onApply }: TransactionFil
     { key: 'yesterday', label: t('filter.yesterday') },
     { key: '7days',     label: t('filter.7days') },
     { key: 'thisMonth', label: t('filter.this_month') },
+    { key: 'thisYear',  label: t('filter.this_year') },
     { key: 'custom',    label: t('filter.custom') },
   ]
 

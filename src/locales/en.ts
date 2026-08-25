@@ -72,6 +72,7 @@ export const en: Record<TranslationKey, string> = {
   'filter.yesterday': 'Yesterday',
   'filter.7days': 'Last 7 Days',
   'filter.this_month': 'This Month',
+  'filter.this_year': 'This Year',
   'filter.custom': 'Custom',
   'filter.apply': 'Apply',
   'filter.start_date': 'Start Date',

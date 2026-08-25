@@ -70,6 +70,7 @@ export const id = {
   'filter.yesterday': 'Kemarin',
   'filter.7days': '7 Hari Terakhir',
   'filter.this_month': 'Bulan Ini',
+  'filter.this_year': 'Tahun Ini',
   'filter.custom': 'Custom',
   'filter.apply': 'Terapkan',
   'filter.start_date': 'Tanggal Awal',
