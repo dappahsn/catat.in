@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { Category } from '@/types/category'
+import type { Category, CreateCategoryInput, UpdateCategoryInput } from '@/types/category'
 
 export async function getCategories(userId: string, type?: 'income' | 'expense'): Promise<Category[]> {
   let query = supabase
@@ -18,7 +18,7 @@ export async function getCategories(userId: string, type?: 'income' | 'expense')
 
 export async function createCategory(
   userId: string,
-  data: { name: string; type: 'income' | 'expense'; icon?: string | null }
+  data: CreateCategoryInput
 ): Promise<Category> {
   const { data: result, error } = await supabase
     .from('categories')
@@ -30,7 +30,23 @@ export async function createCategory(
   return result
 }
 
+export async function updateCategory(
+  id: string,
+  data: UpdateCategoryInput
+): Promise<Category> {
+  const { data: result, error } = await supabase
+    .from('categories')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return result
+}
+
 export async function deleteCategory(id: string): Promise<void> {
   const { error } = await supabase.from('categories').delete().eq('id', id)
   if (error) throw error
 }
+

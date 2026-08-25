@@ -1,19 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useI18n } from '@/contexts/I18nContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getUserSettings, updateUserSettings, getReminder, updateReminder } from '@/services/settings.service'
+import { getCategories, deleteCategory } from '@/services/categories.service'
 import { createBackup } from '@/services/backup.service'
 import { previewBackup, restoreBackup } from '@/services/backup.service'
 import { deleteAllData } from '@/services/backup.service'
 import type { UserSettings, Reminder, AccentColor, ThemeMode, Language } from '@/types/settings'
 import type { BackupData, BackupPreview } from '@/types/backup'
+import type { Category } from '@/types/category'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
+import { CategoryForm } from '@/components/categories/CategoryForm'
 import { ACCENT_COLORS } from '@/lib/constants'
 import { ensureUserProfile } from '@/services/auth.service'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 
 const ACCENT_COLOR_INFO: Record<AccentColor, { label: string; hsl: string }> = {
   blue:   { label: 'Biru',   hsl: 'hsl(220 91% 48%)' },
@@ -22,6 +27,7 @@ const ACCENT_COLOR_INFO: Record<AccentColor, { label: string; hsl: string }> = {
   orange: { label: 'Oranye', hsl: 'hsl(25 95% 45%)' },
   red:    { label: 'Merah',  hsl: 'hsl(0 84% 48%)' },
 }
+
 
 export function SettingsPage() {
   const { user, signOut } = useAuth()
@@ -54,13 +60,36 @@ export function SettingsPage() {
   const [reminderTime, setReminderTime] = useState('08:00')
   const [savingReminder, setSavingReminder] = useState(false)
 
+  // Categories
+  const [categories, setCategories] = useState<Category[]>([])
+  const [categoryType, setCategoryType] = useState<'expense' | 'income'>('expense')
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
+  const [deletingCategoryLoading, setDeletingCategoryLoading] = useState(false)
+
+  const loadCategories = useCallback(async () => {
+    if (!user) return
+    try {
+      const data = await getCategories(user.id)
+      setCategories(data)
+    } catch {
+      showToast('Gagal memuat kategori.', 'error')
+    }
+  }, [user, showToast])
+
   useEffect(() => {
     if (!user) return
     const load = async () => {
       try {
-        const [s, r] = await Promise.all([getUserSettings(user.id), getReminder(user.id)])
+        const [s, r, c] = await Promise.all([
+          getUserSettings(user.id),
+          getReminder(user.id),
+          getCategories(user.id),
+        ])
         setSettings(s)
         setReminderState(r)
+        setCategories(c)
         if (s) {
           setTheme(s.theme)
           setAccentColor(s.accent_color)
@@ -76,6 +105,22 @@ export function SettingsPage() {
     }
     load()
   }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDeleteCategory = async () => {
+    if (!deletingCategory) return
+    setDeletingCategoryLoading(true)
+    try {
+      await deleteCategory(deletingCategory.id)
+      showToast(`Kategori "${deletingCategory.name}" berhasil dihapus.`, 'success')
+      setDeletingCategory(null)
+      await loadCategories()
+    } catch {
+      showToast('Gagal menghapus kategori. Coba lagi.', 'error')
+    } finally {
+      setDeletingCategoryLoading(false)
+    }
+  }
+
 
   const saveSetting = async (updates: Partial<UserSettings>) => {
     if (!user) return
@@ -247,6 +292,117 @@ export function SettingsPage() {
         </div>
       </section>
 
+      {/* === Categories === */}
+      <section className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4 mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Kategori Transaksi</h2>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">Kelola kategori untuk pemasukan dan pengeluaran.</p>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => {
+              setEditingCategory(null)
+              setShowCategoryModal(true)
+            }}
+            className="gap-1.5"
+          >
+            <Plus size={15} />
+            Tambah
+          </Button>
+        </div>
+
+        {/* Category Type Filter Tabs */}
+        <div className="flex gap-1 bg-[var(--surface-2)] rounded-xl p-1 mb-3">
+          <button
+            type="button"
+            onClick={() => setCategoryType('expense')}
+            className={[
+              'flex-1 py-1.5 rounded-lg text-xs font-medium transition-fast flex items-center justify-center gap-1.5',
+              categoryType === 'expense'
+                ? 'bg-[var(--surface)] text-[var(--danger-foreground)] shadow-sm font-semibold'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
+            ].join(' ')}
+          >
+            <span>Pengeluaran</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[var(--danger-light)] text-[var(--danger-foreground)] font-bold">
+              {categories.filter((c) => c.type === 'expense').length}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setCategoryType('income')}
+            className={[
+              'flex-1 py-1.5 rounded-lg text-xs font-medium transition-fast flex items-center justify-center gap-1.5',
+              categoryType === 'income'
+                ? 'bg-[var(--surface)] text-[var(--success-foreground)] shadow-sm font-semibold'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
+            ].join(' ')}
+          >
+            <span>Pemasukan</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[var(--success-light)] text-[var(--success-foreground)] font-bold">
+              {categories.filter((c) => c.type === 'income').length}
+            </span>
+          </button>
+        </div>
+
+        {/* Category List */}
+        <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-0.5">
+          {categories.filter((c) => c.type === categoryType).length === 0 ? (
+            <div className="py-6 text-center text-xs text-[var(--text-muted)]">
+              Belum ada kategori {categoryType === 'expense' ? 'pengeluaran' : 'pemasukan'}.
+            </div>
+          ) : (
+            categories
+              .filter((c) => c.type === categoryType)
+              .map((cat) => (
+                <div
+                  key={cat.id}
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-2)]/60 hover:bg-[var(--surface-2)] transition-fast"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="w-8 h-8 rounded-lg bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-base flex-shrink-0">
+                      {cat.icon ?? '📦'}
+                    </span>
+                    <div className="truncate flex items-center gap-2">
+                      <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                        {cat.name}
+                      </p>
+                      {cat.is_default && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--surface-2)] text-[var(--text-muted)] border border-[var(--border)] font-normal flex-shrink-0">
+                          Bawaan
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => {
+                        setEditingCategory(cat)
+                        setShowCategoryModal(true)
+                      }}
+                      className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--primary)] hover:bg-[var(--surface)] transition-fast"
+                      title="Edit kategori"
+                      aria-label={`Edit kategori ${cat.name}`}
+                    >
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      onClick={() => setDeletingCategory(cat)}
+                      className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--danger)] hover:bg-[var(--surface)] transition-fast"
+                      title="Hapus kategori"
+                      aria-label={`Hapus kategori ${cat.name}`}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+              ))
+          )}
+        </div>
+      </section>
+
       {/* === Reminder === */}
       <section className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4 mb-4">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-3">Pengingat Harian</h2>
@@ -408,6 +564,43 @@ export function SettingsPage() {
       </Button>
 
       {/* === Dialogs === */}
+      {/* Category Modal (Add / Edit) */}
+      <Modal
+        isOpen={showCategoryModal}
+        onClose={() => {
+          setShowCategoryModal(false)
+          setEditingCategory(null)
+        }}
+        title={editingCategory ? 'Edit Kategori' : 'Tambah Kategori'}
+      >
+        <CategoryForm
+          category={editingCategory}
+          defaultType={categoryType}
+          onSuccess={() => {
+            setShowCategoryModal(false)
+            setEditingCategory(null)
+            loadCategories()
+          }}
+          onCancel={() => {
+            setShowCategoryModal(false)
+            setEditingCategory(null)
+          }}
+        />
+      </Modal>
+
+      {/* Delete Category Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={!!deletingCategory}
+        title="Hapus Kategori?"
+        description={`Kategori "${deletingCategory?.name}" akan dihapus. Transaksi yang sebelumnya menggunakan kategori ini akan tetap tersimpan.`}
+        confirmLabel="Hapus Kategori"
+        cancelLabel="Batal"
+        confirmVariant="danger"
+        onConfirm={handleDeleteCategory}
+        onCancel={() => setDeletingCategory(null)}
+        loading={deletingCategoryLoading}
+      />
+
       {/* Logout confirm */}
       <ConfirmDialog
         isOpen={showLogoutDialog}

@@ -8,6 +8,18 @@ export interface Category {
   created_at: string
 }
 
+export interface CreateCategoryInput {
+  name: string
+  type: 'income' | 'expense'
+  icon?: string | null
+}
+
+export interface UpdateCategoryInput {
+  name?: string
+  type?: 'income' | 'expense'
+  icon?: string | null
+}
+
 export const DEFAULT_EXPENSE_CATEGORIES = [
   { name: 'Makanan', icon: '🍔' },
   { name: 'Transportasi', icon: '🚗' },

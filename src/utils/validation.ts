@@ -17,6 +17,16 @@ export function validateAccountName(name: string): string | null {
 }
 
 /**
+ * Validate category name.
+ */
+export function validateCategoryName(name: string): string | null {
+  if (!name || name.trim().length === 0) return 'Nama kategori wajib diisi'
+  if (name.trim().length > 50) return 'Nama kategori maksimal 50 karakter'
+  return null
+}
+
+
+/**
  * Validate that source and destination accounts differ.
  */
 export function validateTransferAccounts(sourceId: string, destId: string): string | null {
