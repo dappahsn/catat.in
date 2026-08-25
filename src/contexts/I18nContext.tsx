@@ -17,10 +17,14 @@ const I18nContext = createContext<I18nContextValue | null>(null)
 const translations: Record<Language, Translations> = { id, en }
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('id')
+  const [language, setLanguageState] = useState<Language>(() => {
+    const saved = localStorage.getItem('catatin_language')
+    return (saved === 'en' || saved === 'id') ? saved : 'id'
+  })
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang)
+    localStorage.setItem('catatin_language', lang)
   }, [])
 
   const t = useCallback((key: TranslationKey): string => {

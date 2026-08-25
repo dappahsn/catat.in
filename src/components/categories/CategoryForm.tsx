@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
+import { useI18n } from '@/contexts/I18nContext'
 import { createCategory, updateCategory } from '@/services/categories.service'
 import type { Category } from '@/types/category'
 import { Input } from '@/components/ui/Input'
@@ -25,6 +26,7 @@ const CATEGORY_ICONS = [
 export function CategoryForm({ category, defaultType = 'expense', onSuccess, onCancel }: CategoryFormProps) {
   const { user } = useAuth()
   const { showToast } = useToast()
+  const { t } = useI18n()
   const isEdit = !!category
 
   const [type, setType] = useState<'income' | 'expense'>(category?.type ?? defaultType)
@@ -53,18 +55,18 @@ export function CategoryForm({ category, defaultType = 'expense', onSuccess, onC
           type,
           icon: icon || null,
         })
-        showToast('Kategori berhasil diperbarui.', 'success')
+        showToast(t('categories.success_update'), 'success')
       } else {
         await createCategory(user.id, {
           name: name.trim(),
           type,
           icon: icon || null,
         })
-        showToast('Kategori baru berhasil ditambahkan.', 'success')
+        showToast(t('categories.success_create'), 'success')
       }
       onSuccess()
     } catch {
-      showToast('Gagal menyimpan kategori. Coba lagi.', 'error')
+      showToast(t('common.error'), 'error')
     } finally {
       setSaving(false)
     }
@@ -75,7 +77,7 @@ export function CategoryForm({ category, defaultType = 'expense', onSuccess, onC
       {/* Type Toggle */}
       <div>
         <label className="text-xs font-semibold text-[var(--text-secondary)] mb-2 block">
-          Tipe Kategori
+          {t('categories.type')}
         </label>
         <div className="flex gap-1 bg-[var(--surface-2)] rounded-xl p-1">
           <button
@@ -91,7 +93,7 @@ export function CategoryForm({ category, defaultType = 'expense', onSuccess, onC
                 : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
             ].join(' ')}
           >
-            Pengeluaran
+            {t('transaction.expense')}
           </button>
           <button
             type="button"
@@ -106,7 +108,7 @@ export function CategoryForm({ category, defaultType = 'expense', onSuccess, onC
                 : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
             ].join(' ')}
           >
-            Pemasukan
+            {t('transaction.income')}
           </button>
         </div>
       </div>
@@ -115,10 +117,10 @@ export function CategoryForm({ category, defaultType = 'expense', onSuccess, onC
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-xs font-semibold text-[var(--text-secondary)]">
-            Ikon Emoji
+            {t('categories.icon_label')}
           </label>
           <span className="text-xs text-[var(--text-muted)]">
-            Terpilih: <span className="text-base">{icon}</span>
+            {t('categories.selected')}: <span className="text-base">{icon}</span>
           </span>
         </div>
         <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2 bg-[var(--surface-2)] rounded-xl border border-[var(--border)]">
@@ -133,7 +135,7 @@ export function CategoryForm({ category, defaultType = 'expense', onSuccess, onC
                   ? 'bg-[var(--primary-light)] ring-2 ring-[var(--primary)] scale-110 shadow-sm'
                   : 'hover:bg-[var(--surface)] bg-transparent',
               ].join(' ')}
-              aria-label={`Pilih emoji ${emoji}`}
+              aria-label={`Select emoji ${emoji}`}
             >
               {emoji}
             </button>
@@ -143,8 +145,8 @@ export function CategoryForm({ category, defaultType = 'expense', onSuccess, onC
 
       {/* Name Input */}
       <Input
-        label="Nama Kategori"
-        placeholder={type === 'income' ? 'Contoh: Gaji, Dividen, Freelance' : 'Contoh: Makanan, Belanja, Kopi'}
+        label={t('categories.name')}
+        placeholder={t('categories.name_placeholder')}
         value={name}
         onChange={(e) => {
           setName(e.target.value)
@@ -164,14 +166,14 @@ export function CategoryForm({ category, defaultType = 'expense', onSuccess, onC
           onClick={onCancel}
           disabled={saving}
         >
-          Batal
+          {t('common.cancel')}
         </Button>
         <Button
           type="submit"
           fullWidth
           loading={saving}
         >
-          {saving ? 'Menyimpan...' : isEdit ? 'Simpan Perubahan' : 'Tambah Kategori'}
+          {saving ? t('common.loading') : isEdit ? t('categories.save_changes') : t('categories.add')}
         </Button>
       </div>
     </form>

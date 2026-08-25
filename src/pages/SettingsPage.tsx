@@ -35,10 +35,8 @@ import {
 export function SettingsPage() {
   const { user, signOut } = useAuth()
   const { theme, setTheme } = useTheme()
-  const { language, setLanguage } = useI18n()
+  const { language, setLanguage, t } = useI18n()
   const { showToast } = useToast()
-
-
 
   const [loading, setLoading] = useState(true)
 
@@ -84,9 +82,9 @@ export function SettingsPage() {
       const data = await getCategories(user.id)
       setCategories(data)
     } catch {
-      showToast('Gagal memuat kategori.', 'error')
+      showToast(t('common.failed_load'), 'error')
     }
-  }, [user, showToast])
+  }, [user, showToast, t])
 
   useEffect(() => {
     if (!user) return
@@ -122,13 +120,13 @@ export function SettingsPage() {
     try {
       await updateUserSettings(user.id, updates)
     } catch {
-      showToast('Gagal menyimpan pengaturan.', 'error')
+      showToast(t('common.error'), 'error')
     }
   }
 
-  const handleThemeChange = (t: ThemeMode) => {
-    setTheme(t)
-    saveSetting({ theme: t })
+  const handleThemeChange = (tMode: ThemeMode) => {
+    setTheme(tMode)
+    saveSetting({ theme: tMode })
   }
 
   const handleLanguageChange = (l: Language) => {
@@ -143,7 +141,7 @@ export function SettingsPage() {
     if (enabled && 'Notification' in window) {
       const perm = await Notification.requestPermission()
       if (perm !== 'granted') {
-        showToast('Izin notifikasi ditolak. Aktifkan di pengaturan browser.', 'error')
+        showToast(t('reminder.permission_denied'), 'error')
         return
       }
     }
@@ -151,7 +149,7 @@ export function SettingsPage() {
     setSavingReminder(true)
     try {
       await updateReminder(user.id, { enabled, time: reminderTime + ':00' })
-      showToast(enabled ? 'Pengingat harian diaktifkan.' : 'Pengingat harian dinonaktifkan.', 'success')
+      showToast(enabled ? (language === 'en' ? 'Daily reminder enabled.' : 'Pengingat harian diaktifkan.') : (language === 'en' ? 'Daily reminder disabled.' : 'Pengingat harian dinonaktifkan.'), 'success')
     } finally {
       setSavingReminder(false)
     }
@@ -164,7 +162,7 @@ export function SettingsPage() {
       setReminderTime(tempReminderTime)
       await updateReminder(user.id, { enabled: reminderEnabled, time: tempReminderTime + ':00' })
       setShowTimeModal(false)
-      showToast('Waktu pengingat disimpan.', 'success')
+      showToast(language === 'en' ? 'Reminder time saved.' : 'Waktu pengingat disimpan.', 'success')
     } finally {
       setSavingReminder(false)
     }
@@ -175,11 +173,11 @@ export function SettingsPage() {
     setDeletingCategoryLoading(true)
     try {
       await deleteCategory(deletingCategory.id)
-      showToast(`Kategori "${deletingCategory.name}" berhasil dihapus.`, 'success')
+      showToast(t('categories.success_delete'), 'success')
       setDeletingCategory(null)
       await loadCategories()
     } catch {
-      showToast('Gagal menghapus kategori. Coba lagi.', 'error')
+      showToast(t('common.error'), 'error')
     } finally {
       setDeletingCategoryLoading(false)
     }
@@ -190,9 +188,9 @@ export function SettingsPage() {
     setBackingUp(true)
     try {
       await createBackup(user.id)
-      showToast('Backup berhasil diunduh.', 'success')
+      showToast(t('backup.success'), 'success')
     } catch {
-      showToast('Gagal membuat backup.', 'error')
+      showToast(t('common.error'), 'error')
     } finally {
       setBackingUp(false)
     }
@@ -207,14 +205,14 @@ export function SettingsPage() {
         const json = JSON.parse(ev.target?.result as string)
         const { preview, error } = previewBackup(json)
         if (error || !preview) {
-          showToast(error ?? 'File backup tidak valid.', 'error')
+          showToast(error ?? t('restore.invalid'), 'error')
           return
         }
         setRestorePreview(preview)
         setRestoreData(json as BackupData)
         setShowRestoreDialog(true)
       } catch {
-        showToast('File backup tidak valid atau rusak.', 'error')
+        showToast(t('restore.invalid'), 'error')
       }
     }
     reader.readAsText(file)
@@ -226,30 +224,31 @@ export function SettingsPage() {
     setRestoring(true)
     try {
       await restoreBackup(user.id, restoreData)
-      showToast('Data berhasil dipulihkan.', 'success')
+      showToast(t('restore.success'), 'success')
       setShowRestoreDialog(false)
       setRestorePreview(null)
       setRestoreData(null)
       await loadCategories()
     } catch {
-      showToast('Gagal memulihkan data. Coba lagi.', 'error')
+      showToast(t('common.error'), 'error')
     } finally {
       setRestoring(false)
     }
   }
 
   const handleDeleteAll = async () => {
-    if (!user || deleteConfirmText !== 'HAPUS') return
+    const expectedConfirm = language === 'en' ? 'DELETE' : 'HAPUS'
+    if (!user || deleteConfirmText.trim().toUpperCase() !== expectedConfirm) return
     setDeleting(true)
     try {
       await deleteAllData(user.id)
       await ensureUserProfile(user)
-      showToast('Semua data berhasil dihapus.', 'success')
+      showToast(t('danger.success'), 'success')
       setShowDeleteDialog(false)
       setDeleteConfirmText('')
       await loadCategories()
     } catch {
-      showToast('Gagal menghapus data.', 'error')
+      showToast(t('common.error'), 'error')
     } finally {
       setDeleting(false)
     }
@@ -260,7 +259,7 @@ export function SettingsPage() {
     try {
       await signOut()
     } catch {
-      showToast('Gagal keluar.', 'error')
+      showToast(t('common.error'), 'error')
     } finally {
       setLoggingOut(false)
     }
@@ -300,17 +299,17 @@ export function SettingsPage() {
         {/* Header */}
         <div className="text-center md:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold text-[#063d35] dark:text-emerald-400">
-            Settings
+            {t('settings.title')}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Kelola akun, preferensi tampilan, dan data aplikasi Anda
+            {t('settings.subtitle')}
           </p>
         </div>
 
         {/* === SECTION 1: ACCOUNT === */}
         <div>
           <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-2.5">
-            Account
+            {t('settings.account')}
           </h2>
           <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] p-4 sm:p-5 shadow-xs flex items-center justify-between gap-4">
             <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
@@ -338,7 +337,7 @@ export function SettingsPage() {
               onClick={() => setShowLogoutDialog(true)}
               className="px-4 sm:px-5 py-2 sm:py-2.5 bg-[#b91c1c] hover:bg-red-700 active:bg-red-800 text-white font-semibold text-xs sm:text-sm rounded-xl transition-colors flex-shrink-0 shadow-2xs"
             >
-              Logout
+              {t('settings.logout')}
             </button>
           </div>
         </div>
@@ -348,7 +347,7 @@ export function SettingsPage() {
           {/* === SECTION 2: PREFERENCES === */}
           <div className="flex flex-col">
             <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-2.5">
-              Preferences
+              {t('settings.preferences')}
             </h2>
             <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] shadow-xs divide-y divide-slate-100 dark:divide-[var(--border)] overflow-hidden">
               {/* 1. Daily Reminder */}
@@ -359,10 +358,10 @@ export function SettingsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                      Daily Reminder
+                      {t('reminder.title')}
                     </p>
                     <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate">
-                      {reminderEnabled ? `Aktif pukul ${reminderTime}` : 'Remind me to record transactions'}
+                      {reminderEnabled ? `${t('reminder.active_at')} ${reminderTime}` : t('reminder.subtitle')}
                     </p>
                   </div>
                 </div>
@@ -374,7 +373,7 @@ export function SettingsPage() {
                         setShowTimeModal(true)
                       }}
                       className="p-1.5 px-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-1.5 transition-colors border border-slate-200 dark:border-slate-700"
-                      title="Atur Waktu"
+                      title={t('reminder.adjust_time')}
                     >
                       <Clock size={14} />
                       <span className="font-medium">{reminderTime}</span>
@@ -412,10 +411,10 @@ export function SettingsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                      Theme
+                      {t('theme.title')}
                     </p>
                     <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 capitalize">
-                      {themeLabels[theme]}
+                      {theme === 'dark' ? t('theme.dark') : t('theme.light')}
                     </p>
                   </div>
                 </div>
@@ -433,10 +432,10 @@ export function SettingsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                      Language
+                      {t('language.title')}
                     </p>
                     <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                      {languageLabels[language]}
+                      {language === 'en' ? 'English' : 'Bahasa Indonesia'}
                     </p>
                   </div>
                 </div>
@@ -454,10 +453,10 @@ export function SettingsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                      Transaction Categories
+                      {t('categories.title')}
                     </p>
                     <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                      {categories.length} Kategori terdaftar
+                      {categories.length} {t('categories.registered')}
                     </p>
                   </div>
                 </div>
@@ -469,7 +468,7 @@ export function SettingsPage() {
           {/* === SECTION 3: DATA MANAGEMENT === */}
           <div className="flex flex-col">
             <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-2.5">
-              Data Management
+              {t('settings.data_management')}
             </h2>
             <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] shadow-xs divide-y divide-slate-100 dark:divide-[var(--border)] overflow-hidden">
               {/* 1. Backup Data */}
@@ -484,15 +483,15 @@ export function SettingsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                      Backup Data
+                      {t('backup.title')}
                     </p>
                     <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                      {backingUp ? 'Menyiapkan file backup...' : 'Save to Google Drive / JSON file'}
+                      {backingUp ? t('backup.preparing') : t('backup.save_desc')}
                     </p>
                   </div>
                 </div>
                 <span className="text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                  Backup
+                  {t('backup.button_short')}
                 </span>
               </button>
 
@@ -510,15 +509,15 @@ export function SettingsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                      Restore Data
+                      {t('restore.title')}
                     </p>
                     <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                      Load from backup file
+                      {t('restore.load_desc')}
                     </p>
                   </div>
                 </div>
                 <span className="text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                  Pilih File
+                  {t('restore.button')}
                 </span>
               </label>
 
@@ -533,10 +532,10 @@ export function SettingsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-sm sm:text-base text-red-700 dark:text-red-400">
-                      Delete All Data
+                      {t('danger.delete_all')}
                     </p>
                     <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                      This action cannot be undone
+                      {t('danger.undone_desc')}
                     </p>
                   </div>
                 </div>
@@ -556,7 +555,7 @@ export function SettingsPage() {
       <Modal
         isOpen={showThemeModal}
         onClose={() => setShowThemeModal(false)}
-        title="Pilih Tema"
+        title={t('theme.choose_theme')}
       >
         <div className="space-y-2.5">
           <button
@@ -576,8 +575,8 @@ export function SettingsPage() {
                 <Sun size={18} />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-sm">Terang (Light)</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">Tema bawaan aplikasi</p>
+                <p className="font-semibold text-sm">{t('theme.light_label')}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">{t('theme.light_desc')}</p>
               </div>
             </div>
             {theme === 'light' && <Check size={18} />}
@@ -600,8 +599,8 @@ export function SettingsPage() {
                 <Moon size={18} />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-sm">Gelap (Dark)</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">Nyaman di mata untuk kondisi minim cahaya</p>
+                <p className="font-semibold text-sm">{t('theme.dark_label')}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">{t('theme.dark_desc')}</p>
               </div>
             </div>
             {theme === 'dark' && <Check size={18} />}
@@ -613,7 +612,7 @@ export function SettingsPage() {
       <Modal
         isOpen={showLanguageModal}
         onClose={() => setShowLanguageModal(false)}
-        title="Pilih Bahasa"
+        title={t('language.choose_language')}
       >
         <div className="space-y-3">
           {(['id', 'en'] as const).map((lang) => (
@@ -638,21 +637,21 @@ export function SettingsPage() {
       <Modal
         isOpen={showTimeModal}
         onClose={() => setShowTimeModal(false)}
-        title="Atur Waktu Pengingat"
+        title={t('reminder.adjust_time')}
       >
         <div className="space-y-4">
           <Input
-            label="Pilih Jam Notifikasi"
+            label={t('reminder.choose_time')}
             type="time"
             value={tempReminderTime}
             onChange={(e) => setTempReminderTime(e.target.value)}
           />
           <div className="flex gap-2">
             <Button variant="secondary" fullWidth onClick={() => setShowTimeModal(false)}>
-              Batal
+              {t('common.cancel')}
             </Button>
             <Button fullWidth onClick={handleReminderTimeSave} loading={savingReminder}>
-              Simpan Waktu
+              {t('reminder.save_time')}
             </Button>
           </div>
         </div>
@@ -662,7 +661,7 @@ export function SettingsPage() {
       <Modal
         isOpen={showCategoriesModal}
         onClose={() => setShowCategoriesModal(false)}
-        title="Kelola Kategori"
+        title={t('categories.manage_title')}
         maxWidth="max-w-lg"
       >
         <div className="space-y-4">
@@ -679,7 +678,7 @@ export function SettingsPage() {
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200',
                 ].join(' ')}
               >
-                <span>Pengeluaran</span>
+                <span>{t('transaction.expense')}</span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400 font-bold">
                   {categories.filter((c) => c.type === 'expense').length}
                 </span>
@@ -694,7 +693,7 @@ export function SettingsPage() {
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200',
                 ].join(' ')}
               >
-                <span>Pemasukan</span>
+                <span>{t('transaction.income')}</span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 font-bold">
                   {categories.filter((c) => c.type === 'income').length}
                 </span>
@@ -710,7 +709,7 @@ export function SettingsPage() {
               className="gap-1 flex-shrink-0"
             >
               <Plus size={15} />
-              Tambah
+              {t('categories.add_short')}
             </Button>
           </div>
 
@@ -718,7 +717,7 @@ export function SettingsPage() {
           <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
             {categories.filter((c) => c.type === categoryTab).length === 0 ? (
               <div className="py-8 text-center text-xs text-slate-400">
-                Belum ada kategori {categoryTab === 'expense' ? 'pengeluaran' : 'pemasukan'}.
+                {categoryTab === 'expense' ? t('categories.empty_expense') : t('categories.empty_income')}
               </div>
             ) : (
               categories
@@ -738,7 +737,7 @@ export function SettingsPage() {
                         </p>
                         {cat.is_default && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-normal">
-                            Bawaan
+                            {t('categories.default_badge')}
                           </span>
                         )}
                       </div>
@@ -751,7 +750,7 @@ export function SettingsPage() {
                           setShowCategoryFormModal(true)
                         }}
                         className="p-1.5 rounded-lg text-slate-500 hover:text-[var(--primary)] hover:bg-white dark:hover:bg-slate-700 transition-colors"
-                        title="Edit kategori"
+                        title={t('common.edit')}
                         aria-label={`Edit ${cat.name}`}
                       >
                         <Pencil size={15} />
@@ -759,7 +758,7 @@ export function SettingsPage() {
                       <button
                         onClick={() => setDeletingCategory(cat)}
                         className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-white dark:hover:bg-slate-700 transition-colors"
-                        title="Hapus kategori"
+                        title={t('common.delete')}
                         aria-label={`Hapus ${cat.name}`}
                       >
                         <Trash2 size={15} />
@@ -779,7 +778,7 @@ export function SettingsPage() {
           setShowCategoryFormModal(false)
           setEditingCategory(null)
         }}
-        title={editingCategory ? 'Edit Kategori' : 'Tambah Kategori'}
+        title={editingCategory ? t('categories.edit') : t('categories.add')}
       >
         <CategoryForm
           category={editingCategory}
@@ -799,10 +798,10 @@ export function SettingsPage() {
       {/* --- Delete Category Confirm Dialog --- */}
       <ConfirmDialog
         isOpen={!!deletingCategory}
-        title="Hapus Kategori?"
-        description={`Kategori "${deletingCategory?.name}" akan dihapus. Transaksi yang sebelumnya menggunakan kategori ini akan tetap tersimpan.`}
-        confirmLabel="Hapus Kategori"
-        cancelLabel="Batal"
+        title={t('categories.delete_title')}
+        description={`"${deletingCategory?.name}" ${t('categories.delete_desc')}`}
+        confirmLabel={t('categories.delete_btn')}
+        cancelLabel={t('common.cancel')}
         confirmVariant="danger"
         onConfirm={handleDeleteCategory}
         onCancel={() => setDeletingCategory(null)}
@@ -812,10 +811,10 @@ export function SettingsPage() {
       {/* --- Logout Confirm Dialog --- */}
       <ConfirmDialog
         isOpen={showLogoutDialog}
-        title="Keluar dari akun?"
-        description="Kamu akan keluar dari aplikasi. Data keuanganmu tetap aman."
-        confirmLabel="Keluar"
-        cancelLabel="Batal"
+        title={t('settings.logout_confirm')}
+        description={t('settings.logout_desc')}
+        confirmLabel={t('settings.logout')}
+        cancelLabel={t('common.cancel')}
         confirmVariant="danger"
         onConfirm={handleLogout}
         onCancel={() => setShowLogoutDialog(false)}
@@ -825,8 +824,9 @@ export function SettingsPage() {
       {/* --- Restore Preview Dialog --- */}
       <ConfirmDialog
         isOpen={showRestoreDialog}
-        title="Pulihkan Data"
-        confirmLabel="Pulihkan"
+        title={t('restore.title')}
+        confirmLabel={t('restore.confirm')}
+        cancelLabel={t('common.cancel')}
         confirmVariant="primary"
         onConfirm={handleRestoreConfirm}
         onCancel={() => {
@@ -838,23 +838,23 @@ export function SettingsPage() {
       >
         {restorePreview && (
           <div className="bg-[var(--surface-2)] rounded-xl p-3 text-sm mb-2">
-            <p className="text-[var(--text-primary)] font-medium mb-2">Preview Backup</p>
+            <p className="text-[var(--text-primary)] font-medium mb-2">{t('restore.preview')}</p>
             <div className="flex flex-col gap-1 text-[var(--text-secondary)]">
               <div className="flex justify-between">
-                <span>Rekening</span>
+                <span>{t('restore.accounts')}</span>
                 <span className="font-medium">{restorePreview.accountCount}</span>
               </div>
               <div className="flex justify-between">
-                <span>Transaksi</span>
+                <span>{t('restore.transactions')}</span>
                 <span className="font-medium">{restorePreview.transactionCount}</span>
               </div>
               <div className="flex justify-between">
-                <span>Kategori</span>
+                <span>{t('restore.categories')}</span>
                 <span className="font-medium">{restorePreview.categoryCount}</span>
               </div>
             </div>
             <p className="text-xs text-[var(--text-muted)] mt-2">
-              Data ini akan ditambahkan ke akun kamu saat ini.
+              {t('restore.preview_note')}
             </p>
           </div>
         )}
@@ -863,9 +863,10 @@ export function SettingsPage() {
       {/* --- Delete All Data Confirm Dialog --- */}
       <ConfirmDialog
         isOpen={showDeleteDialog}
-        title="Hapus Semua Data?"
-        description="Semua transaksi, rekening, dan data keuangan akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan."
-        confirmLabel="Hapus Semua Data"
+        title={t('danger.delete_all_title')}
+        description={t('danger.delete_all_desc')}
+        confirmLabel={t('danger.delete_button')}
+        cancelLabel={t('common.cancel')}
         confirmVariant="danger"
         onConfirm={handleDeleteAll}
         onCancel={() => {
@@ -875,10 +876,10 @@ export function SettingsPage() {
         loading={deleting}
       >
         <Input
-          label="Ketik HAPUS untuk konfirmasi"
+          label={t('danger.type_to_confirm')}
           value={deleteConfirmText}
           onChange={(e) => setDeleteConfirmText(e.target.value)}
-          placeholder="HAPUS"
+          placeholder={t('danger.confirm_word')}
         />
       </ConfirmDialog>
     </div>
