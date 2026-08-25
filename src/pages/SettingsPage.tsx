@@ -5,10 +5,8 @@ import { useI18n } from '@/contexts/I18nContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getUserSettings, updateUserSettings, getReminder, updateReminder } from '@/services/settings.service'
 import { getCategories, deleteCategory } from '@/services/categories.service'
-import { createBackup } from '@/services/backup.service'
-import { previewBackup, restoreBackup } from '@/services/backup.service'
-import { deleteAllData } from '@/services/backup.service'
-import type { UserSettings, Reminder, AccentColor, ThemeMode, Language } from '@/types/settings'
+import { createBackup, previewBackup, restoreBackup, deleteAllData } from '@/services/backup.service'
+import type { UserSettings, AccentColor, ThemeMode, Language } from '@/types/settings'
 import type { BackupData, BackupPreview } from '@/types/backup'
 import type { Category } from '@/types/category'
 import { Button } from '@/components/ui/Button'
@@ -18,7 +16,20 @@ import { Input } from '@/components/ui/Input'
 import { CategoryForm } from '@/components/categories/CategoryForm'
 import { ACCENT_COLORS } from '@/lib/constants'
 import { ensureUserProfile } from '@/services/auth.service'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import {
+  Bell,
+  Palette,
+  Globe,
+  Tag,
+  CloudUpload,
+  History,
+  Trash2,
+  ChevronRight,
+  Plus,
+  Pencil,
+  Check,
+  Clock,
+} from 'lucide-react'
 
 const ACCENT_COLOR_INFO: Record<AccentColor, { label: string; hsl: string }> = {
   blue:   { label: 'Biru',   hsl: 'hsl(220 91% 48%)' },
@@ -28,20 +39,38 @@ const ACCENT_COLOR_INFO: Record<AccentColor, { label: string; hsl: string }> = {
   red:    { label: 'Merah',  hsl: 'hsl(0 84% 48%)' },
 }
 
-
 export function SettingsPage() {
   const { user, signOut } = useAuth()
   const { theme, accentColor, setTheme, setAccentColor } = useTheme()
   const { language, setLanguage } = useI18n()
   const { showToast } = useToast()
 
-  const [settings, setSettings] = useState<UserSettings | null>(null)
-  const [reminder, setReminderState] = useState<Reminder | null>(null)
+
   const [loading, setLoading] = useState(true)
+
+  // Modals
+  const [showThemeModal, setShowThemeModal] = useState(false)
+  const [showLanguageModal, setShowLanguageModal] = useState(false)
+  const [showCategoriesModal, setShowCategoriesModal] = useState(false)
+  const [showTimeModal, setShowTimeModal] = useState(false)
 
   // Logout
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
+
+  // Categories
+  const [categories, setCategories] = useState<Category[]>([])
+  const [categoryTab, setCategoryTab] = useState<'expense' | 'income'>('expense')
+  const [showCategoryFormModal, setShowCategoryFormModal] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
+  const [deletingCategoryLoading, setDeletingCategoryLoading] = useState(false)
+
+  // Reminder
+  const [reminderEnabled, setReminderEnabled] = useState(false)
+  const [reminderTime, setReminderTime] = useState('08:00')
+  const [tempReminderTime, setTempReminderTime] = useState('08:00')
+  const [savingReminder, setSavingReminder] = useState(false)
 
   // Backup / Restore
   const [backingUp, setBackingUp] = useState(false)
@@ -54,19 +83,6 @@ export function SettingsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
-
-  // Reminder
-  const [reminderEnabled, setReminderEnabled] = useState(false)
-  const [reminderTime, setReminderTime] = useState('08:00')
-  const [savingReminder, setSavingReminder] = useState(false)
-
-  // Categories
-  const [categories, setCategories] = useState<Category[]>([])
-  const [categoryType, setCategoryType] = useState<'expense' | 'income'>('expense')
-  const [showCategoryModal, setShowCategoryModal] = useState(false)
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
-  const [deletingCategoryLoading, setDeletingCategoryLoading] = useState(false)
 
   const loadCategories = useCallback(async () => {
     if (!user) return
@@ -87,8 +103,6 @@ export function SettingsPage() {
           getReminder(user.id),
           getCategories(user.id),
         ])
-        setSettings(s)
-        setReminderState(r)
         setCategories(c)
         if (s) {
           setTheme(s.theme)
@@ -97,7 +111,11 @@ export function SettingsPage() {
         }
         if (r) {
           setReminderEnabled(r.enabled)
-          if (r.time) setReminderTime(r.time.substring(0, 5))
+          if (r.time) {
+            const parsedTime = r.time.substring(0, 5)
+            setReminderTime(parsedTime)
+            setTempReminderTime(parsedTime)
+          }
         }
       } finally {
         setLoading(false)
@@ -105,22 +123,6 @@ export function SettingsPage() {
     }
     load()
   }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleDeleteCategory = async () => {
-    if (!deletingCategory) return
-    setDeletingCategoryLoading(true)
-    try {
-      await deleteCategory(deletingCategory.id)
-      showToast(`Kategori "${deletingCategory.name}" berhasil dihapus.`, 'success')
-      setDeletingCategory(null)
-      await loadCategories()
-    } catch {
-      showToast('Gagal menghapus kategori. Coba lagi.', 'error')
-    } finally {
-      setDeletingCategoryLoading(false)
-    }
-  }
-
 
   const saveSetting = async (updates: Partial<UserSettings>) => {
     if (!user) return
@@ -144,6 +146,8 @@ export function SettingsPage() {
   const handleLanguageChange = (l: Language) => {
     setLanguage(l)
     saveSetting({ language: l })
+    setShowLanguageModal(false)
+    showToast(l === 'id' ? 'Bahasa berhasil diubah.' : 'Language updated.', 'success')
   }
 
   const handleReminderToggle = async (enabled: boolean) => {
@@ -159,6 +163,7 @@ export function SettingsPage() {
     setSavingReminder(true)
     try {
       await updateReminder(user.id, { enabled, time: reminderTime + ':00' })
+      showToast(enabled ? 'Pengingat harian diaktifkan.' : 'Pengingat harian dinonaktifkan.', 'success')
     } finally {
       setSavingReminder(false)
     }
@@ -168,10 +173,27 @@ export function SettingsPage() {
     if (!user) return
     setSavingReminder(true)
     try {
-      await updateReminder(user.id, { enabled: reminderEnabled, time: reminderTime + ':00' })
+      setReminderTime(tempReminderTime)
+      await updateReminder(user.id, { enabled: reminderEnabled, time: tempReminderTime + ':00' })
+      setShowTimeModal(false)
       showToast('Waktu pengingat disimpan.', 'success')
     } finally {
       setSavingReminder(false)
+    }
+  }
+
+  const handleDeleteCategory = async () => {
+    if (!deletingCategory) return
+    setDeletingCategoryLoading(true)
+    try {
+      await deleteCategory(deletingCategory.id)
+      showToast(`Kategori "${deletingCategory.name}" berhasil dihapus.`, 'success')
+      setDeletingCategory(null)
+      await loadCategories()
+    } catch {
+      showToast('Gagal menghapus kategori. Coba lagi.', 'error')
+    } finally {
+      setDeletingCategoryLoading(false)
     }
   }
 
@@ -208,7 +230,6 @@ export function SettingsPage() {
       }
     }
     reader.readAsText(file)
-    // Reset input so same file can be re-selected
     e.target.value = ''
   }
 
@@ -221,6 +242,7 @@ export function SettingsPage() {
       setShowRestoreDialog(false)
       setRestorePreview(null)
       setRestoreData(null)
+      await loadCategories()
     } catch {
       showToast('Gagal memulihkan data. Coba lagi.', 'error')
     } finally {
@@ -233,11 +255,11 @@ export function SettingsPage() {
     setDeleting(true)
     try {
       await deleteAllData(user.id)
-      // Re-create default categories
       await ensureUserProfile(user)
       showToast('Semua data berhasil dihapus.', 'success')
       setShowDeleteDialog(false)
       setDeleteConfirmText('')
+      await loadCategories()
     } catch {
       showToast('Gagal menghapus data.', 'error')
     } finally {
@@ -258,337 +280,520 @@ export function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="px-4 py-5">
-        <div className="skeleton h-7 w-32 rounded mb-6" />
-        {[1, 2, 3].map((i) => <div key={i} className="skeleton h-24 rounded-2xl mb-4" />)}
+      <div className="px-4 py-5 max-w-md mx-auto">
+        <div className="skeleton h-7 w-32 rounded mb-6 mx-auto" />
+        {[1, 2, 3].map((i) => <div key={i} className="skeleton h-28 rounded-2xl mb-4" />)}
       </div>
     )
   }
 
   const avatarUrl = user?.user_metadata?.avatar_url
   const name = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? 'Pengguna'
-  const email = user?.email ?? ''
+  const email = user?.email ?? 'user@example.com'
+
+  const themeLabels: Record<ThemeMode, string> = {
+    system: 'System',
+    light: 'Light',
+    dark: 'Dark',
+  }
+
+  const languageLabels: Record<Language, string> = {
+    id: 'Bahasa Indonesia',
+    en: 'English',
+  }
 
   return (
-    <div className="px-4 py-5">
-      <h1 className="text-xl font-bold text-[var(--text-primary)] mb-5">Pengaturan</h1>
+    <div className="min-h-screen pb-12">
+      {/* Header */}
+      <div className="py-4 px-4 text-center">
+        <h1 className="text-2xl font-bold text-[#063d35] dark:text-emerald-400">
+          Settings
+        </h1>
+      </div>
 
-      {/* === Account Info === */}
-      <section className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4 mb-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-3">Akun</h2>
-        <div className="flex items-center gap-3">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={name} className="w-12 h-12 rounded-full object-cover" />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold text-xl">
-              {name[0]?.toUpperCase()}
+      <div className="px-4 max-w-md mx-auto space-y-6">
+        {/* === SECTION 1: ACCOUNT === */}
+        <div>
+          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2.5">
+            Account
+          </h2>
+          <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] p-4 shadow-sm flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3.5 min-w-0">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={name}
+                  className="w-14 h-14 rounded-full object-cover border border-slate-100 dark:border-slate-700 flex-shrink-0"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xl flex-shrink-0">
+                  {name[0]?.toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="font-bold text-base text-slate-900 dark:text-white truncate">
+                  {name}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                  {email}
+                </p>
+              </div>
             </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-[var(--text-primary)] truncate">{name}</p>
-            <p className="text-xs text-[var(--text-muted)] truncate">{email}</p>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">Login dengan Google</p>
+            <button
+              onClick={() => setShowLogoutDialog(true)}
+              className="px-4 py-2 bg-[#b91c1c] hover:bg-red-700 active:bg-red-800 text-white font-semibold text-xs rounded-lg transition-colors flex-shrink-0 shadow-sm"
+            >
+              Logout
+            </button>
           </div>
         </div>
-      </section>
 
-      {/* === Categories === */}
-      <section className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Kategori Transaksi</h2>
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5">Kelola kategori untuk pemasukan dan pengeluaran.</p>
+        {/* === SECTION 2: PREFERENCES === */}
+        <div>
+          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2.5">
+            Preferences
+          </h2>
+          <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] shadow-sm divide-y divide-slate-100 dark:divide-[var(--border)] overflow-hidden">
+            {/* 1. Daily Reminder */}
+            <div className="p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <Bell size={20} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-slate-900 dark:text-white">
+                    Daily Reminder
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                    {reminderEnabled ? `Aktif pukul ${reminderTime}` : 'Remind me to record transactions'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {reminderEnabled && (
+                  <button
+                    onClick={() => {
+                      setTempReminderTime(reminderTime)
+                      setShowTimeModal(true)
+                    }}
+                    className="p-1.5 text-xs text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-1 transition-colors"
+                    title="Atur Waktu"
+                  >
+                    <Clock size={14} />
+                    <span>{reminderTime}</span>
+                  </button>
+                )}
+                <button
+                  role="switch"
+                  aria-checked={reminderEnabled}
+                  onClick={() => handleReminderToggle(!reminderEnabled)}
+                  disabled={savingReminder}
+                  className={[
+                    'relative w-12 h-6 rounded-full transition-all focus-visible:ring-2 focus-visible:ring-[var(--primary)]',
+                    reminderEnabled ? 'bg-[#064e3b] dark:bg-emerald-600' : 'bg-slate-200 dark:bg-slate-700',
+                    'disabled:opacity-50 flex-shrink-0',
+                  ].join(' ')}
+                >
+                  <span
+                    className={[
+                      'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-150',
+                      reminderEnabled ? 'translate-x-6' : 'translate-x-0',
+                    ].join(' ')}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* 2. Theme */}
+            <button
+              onClick={() => setShowThemeModal(true)}
+              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
+            >
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <Palette size={20} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-slate-900 dark:text-white">
+                    Theme
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">
+                    {themeLabels[theme]}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight size={18} className="text-slate-400 flex-shrink-0" />
+            </button>
+
+            {/* 3. Language */}
+            <button
+              onClick={() => setShowLanguageModal(true)}
+              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
+            >
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <Globe size={20} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-slate-900 dark:text-white">
+                    Language
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {languageLabels[language]}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight size={18} className="text-slate-400 flex-shrink-0" />
+            </button>
+
+            {/* 4. Categories */}
+            <button
+              onClick={() => setShowCategoriesModal(true)}
+              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
+            >
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-[#a7f3d0]/60 dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <Tag size={20} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-slate-900 dark:text-white">
+                    Transaction Categories
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {categories.length} Kategori terdaftar
+                  </p>
+                </div>
+              </div>
+              <ChevronRight size={18} className="text-slate-400 flex-shrink-0" />
+            </button>
           </div>
-          <Button
-            size="sm"
-            onClick={() => {
-              setEditingCategory(null)
-              setShowCategoryModal(true)
-            }}
-            className="gap-1.5"
-          >
-            <Plus size={15} />
-            Tambah
+        </div>
+
+        {/* === SECTION 3: DATA MANAGEMENT === */}
+        <div>
+          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2.5">
+            Data Management
+          </h2>
+          <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] shadow-sm divide-y divide-slate-100 dark:divide-[var(--border)] overflow-hidden">
+            {/* 1. Backup Data */}
+            <button
+              onClick={handleBackup}
+              disabled={backingUp}
+              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors disabled:opacity-60"
+            >
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
+                  <CloudUpload size={20} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-slate-900 dark:text-white">
+                    Backup Data
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {backingUp ? 'Menyiapkan file backup...' : 'Save to Google Drive / JSON file'}
+                  </p>
+                </div>
+              </div>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                Backup
+              </span>
+            </button>
+
+            {/* 2. Restore Data */}
+            <label className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
+              <input
+                type="file"
+                accept=".json"
+                className="sr-only"
+                onChange={handleRestoreFileSelect}
+              />
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
+                  <History size={20} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-slate-900 dark:text-white">
+                    Restore Data
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Load from backup file
+                  </p>
+                </div>
+              </div>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                Pilih File
+              </span>
+            </label>
+
+            {/* 3. Delete All Data */}
+            <button
+              onClick={() => setShowDeleteDialog(true)}
+              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors"
+            >
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-red-100/70 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center flex-shrink-0">
+                  <Trash2 size={20} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-red-700 dark:text-red-400">
+                    Delete All Data
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    This action cannot be undone
+                  </p>
+                </div>
+              </div>
+              <ChevronRight size={18} className="text-red-400 flex-shrink-0" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* MODALS & DIALOGS */}
+      {/* ========================================================================= */}
+
+      {/* --- Theme & Accent Color Modal --- */}
+      <Modal
+        isOpen={showThemeModal}
+        onClose={() => setShowThemeModal(false)}
+        title="Pilih Tema & Tampilan"
+      >
+        <div className="space-y-5">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 mb-2">Mode Tampilan</p>
+            <div className="grid grid-cols-3 gap-2">
+              {(['system', 'light', 'dark'] as const).map((tMode) => (
+                <button
+                  key={tMode}
+                  onClick={() => handleThemeChange(tMode)}
+                  className={[
+                    'py-3 px-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition-all',
+                    theme === tMode
+                      ? 'border-[var(--primary)] bg-[var(--primary-light)] text-[var(--primary)] shadow-sm'
+                      : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300',
+                  ].join(' ')}
+                >
+                  <span className="capitalize">{tMode === 'system' ? 'Sistem' : tMode === 'light' ? 'Terang' : 'Gelap'}</span>
+                  {theme === tMode && <Check size={14} />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold text-slate-500 mb-2">Warna Utama</p>
+            <div className="flex gap-3 justify-center pt-1">
+              {ACCENT_COLORS.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => handleAccentChange(c)}
+                  className={[
+                    'w-10 h-10 rounded-full transition-all focus-visible:ring-2 focus-visible:ring-offset-2',
+                    accentColor === c ? 'scale-110 ring-2 ring-offset-2 ring-[var(--primary)] shadow' : 'opacity-75 hover:opacity-100',
+                  ].join(' ')}
+                  style={{ backgroundColor: ACCENT_COLOR_INFO[c as AccentColor].hsl }}
+                  aria-label={ACCENT_COLOR_INFO[c as AccentColor].label}
+                  aria-pressed={accentColor === c}
+                />
+              ))}
+            </div>
+          </div>
+
+          <Button fullWidth onClick={() => setShowThemeModal(false)}>
+            Selesai
           </Button>
         </div>
+      </Modal>
 
-        {/* Category Type Filter Tabs */}
-        <div className="flex gap-1 bg-[var(--surface-2)] rounded-xl p-1 mb-3">
-          <button
-            type="button"
-            onClick={() => setCategoryType('expense')}
-            className={[
-              'flex-1 py-1.5 rounded-lg text-xs font-medium transition-fast flex items-center justify-center gap-1.5',
-              categoryType === 'expense'
-                ? 'bg-[var(--surface)] text-[var(--danger-foreground)] shadow-sm font-semibold'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
-            ].join(' ')}
-          >
-            <span>Pengeluaran</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[var(--danger-light)] text-[var(--danger-foreground)] font-bold">
-              {categories.filter((c) => c.type === 'expense').length}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setCategoryType('income')}
-            className={[
-              'flex-1 py-1.5 rounded-lg text-xs font-medium transition-fast flex items-center justify-center gap-1.5',
-              categoryType === 'income'
-                ? 'bg-[var(--surface)] text-[var(--success-foreground)] shadow-sm font-semibold'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
-            ].join(' ')}
-          >
-            <span>Pemasukan</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[var(--success-light)] text-[var(--success-foreground)] font-bold">
-              {categories.filter((c) => c.type === 'income').length}
-            </span>
-          </button>
+      {/* --- Language Modal --- */}
+      <Modal
+        isOpen={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+        title="Pilih Bahasa"
+      >
+        <div className="space-y-3">
+          {(['id', 'en'] as const).map((lang) => (
+            <button
+              key={lang}
+              onClick={() => handleLanguageChange(lang)}
+              className={[
+                'w-full p-3.5 rounded-xl border flex items-center justify-between text-sm font-semibold transition-all',
+                language === lang
+                  ? 'border-[var(--primary)] bg-[var(--primary-light)] text-[var(--primary)]'
+                  : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200',
+              ].join(' ')}
+            >
+              <span>{lang === 'id' ? '🇮🇩  Bahasa Indonesia' : '🇬🇧  English'}</span>
+              {language === lang && <Check size={18} />}
+            </button>
+          ))}
         </div>
+      </Modal>
 
-        {/* Category List */}
-        <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-0.5">
-          {categories.filter((c) => c.type === categoryType).length === 0 ? (
-            <div className="py-6 text-center text-xs text-[var(--text-muted)]">
-              Belum ada kategori {categoryType === 'expense' ? 'pengeluaran' : 'pemasukan'}.
-            </div>
-          ) : (
-            categories
-              .filter((c) => c.type === categoryType)
-              .map((cat) => (
-                <div
-                  key={cat.id}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-2)]/60 hover:bg-[var(--surface-2)] transition-fast"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="w-8 h-8 rounded-lg bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-base flex-shrink-0">
-                      {cat.icon ?? '📦'}
-                    </span>
-                    <div className="truncate flex items-center gap-2">
-                      <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                        {cat.name}
-                      </p>
-                      {cat.is_default && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--surface-2)] text-[var(--text-muted)] border border-[var(--border)] font-normal flex-shrink-0">
-                          Bawaan
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => {
-                        setEditingCategory(cat)
-                        setShowCategoryModal(true)
-                      }}
-                      className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--primary)] hover:bg-[var(--surface)] transition-fast"
-                      title="Edit kategori"
-                      aria-label={`Edit kategori ${cat.name}`}
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      onClick={() => setDeletingCategory(cat)}
-                      className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--danger)] hover:bg-[var(--surface)] transition-fast"
-                      title="Hapus kategori"
-                      aria-label={`Hapus kategori ${cat.name}`}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              ))
-          )}
+      {/* --- Daily Reminder Time Modal --- */}
+      <Modal
+        isOpen={showTimeModal}
+        onClose={() => setShowTimeModal(false)}
+        title="Atur Waktu Pengingat"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Pilih Jam Notifikasi"
+            type="time"
+            value={tempReminderTime}
+            onChange={(e) => setTempReminderTime(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <Button variant="secondary" fullWidth onClick={() => setShowTimeModal(false)}>
+              Batal
+            </Button>
+            <Button fullWidth onClick={handleReminderTimeSave} loading={savingReminder}>
+              Simpan Waktu
+            </Button>
+          </div>
         </div>
-      </section>
+      </Modal>
 
-      {/* === Reminder === */}
-      <section className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4 mb-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-3">Pengingat Harian</h2>
-        {'Notification' in window ? (
-          <>
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-[var(--text-primary)]">Aktifkan Pengingat</p>
+      {/* --- Categories Manager Modal --- */}
+      <Modal
+        isOpen={showCategoriesModal}
+        onClose={() => setShowCategoriesModal(false)}
+        title="Kelola Kategori"
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-4">
+          {/* Tabs & Add Button */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-1 bg-[var(--surface-2)] rounded-xl p-1 flex-1">
               <button
-                role="switch"
-                aria-checked={reminderEnabled}
-                onClick={() => handleReminderToggle(!reminderEnabled)}
-                disabled={savingReminder}
+                type="button"
+                onClick={() => setCategoryTab('expense')}
                 className={[
-                  'relative w-11 h-6 rounded-full transition-fast focus-visible:ring-2 focus-visible:ring-[var(--primary)]',
-                  reminderEnabled ? 'bg-[var(--primary)]' : 'bg-[var(--border)]',
-                  'disabled:opacity-50',
+                  'flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5',
+                  categoryTab === 'expense'
+                    ? 'bg-white dark:bg-slate-800 text-[var(--danger-foreground)] shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200',
                 ].join(' ')}
               >
-                <span className={[
-                  'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform',
-                  reminderEnabled ? 'translate-x-5' : 'translate-x-0',
-                ].join(' ')} />
+                <span>Pengeluaran</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400 font-bold">
+                  {categories.filter((c) => c.type === 'expense').length}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCategoryTab('income')}
+                className={[
+                  'flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5',
+                  categoryTab === 'income'
+                    ? 'bg-white dark:bg-slate-800 text-[var(--success-foreground)] shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200',
+                ].join(' ')}
+              >
+                <span>Pemasukan</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 font-bold">
+                  {categories.filter((c) => c.type === 'income').length}
+                </span>
               </button>
             </div>
-            {reminderEnabled && (
-              <div className="flex items-end gap-2">
-                <div className="flex-1">
-                  <Input
-                    label="Waktu Pengingat"
-                    type="time"
-                    value={reminderTime}
-                    onChange={(e) => setReminderTime(e.target.value)}
-                  />
-                </div>
-                <Button size="sm" onClick={handleReminderTimeSave} loading={savingReminder}>
-                  Simpan
-                </Button>
+
+            <Button
+              size="sm"
+              onClick={() => {
+                setEditingCategory(null)
+                setShowCategoryFormModal(true)
+              }}
+              className="gap-1 flex-shrink-0"
+            >
+              <Plus size={15} />
+              Tambah
+            </Button>
+          </div>
+
+          {/* Categories List */}
+          <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
+            {categories.filter((c) => c.type === categoryTab).length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-400">
+                Belum ada kategori {categoryTab === 'expense' ? 'pengeluaran' : 'pemasukan'}.
               </div>
+            ) : (
+              categories
+                .filter((c) => c.type === categoryTab)
+                .map((cat) => (
+                  <div
+                    key={cat.id}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 transition-all"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-base flex-shrink-0 shadow-2xs">
+                        {cat.icon ?? '📦'}
+                      </span>
+                      <div className="truncate flex items-center gap-2">
+                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                          {cat.name}
+                        </p>
+                        {cat.is_default && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-normal">
+                            Bawaan
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => {
+                          setEditingCategory(cat)
+                          setShowCategoryFormModal(true)
+                        }}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-[var(--primary)] hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                        title="Edit kategori"
+                        aria-label={`Edit ${cat.name}`}
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        onClick={() => setDeletingCategory(cat)}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                        title="Hapus kategori"
+                        aria-label={`Hapus ${cat.name}`}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))
             )}
-          </>
-        ) : (
-          <p className="text-sm text-[var(--text-muted)]">Notifikasi tidak didukung pada perangkat ini.</p>
-        )}
-      </section>
-
-      {/* === Appearance === */}
-      <section className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4 mb-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-3">Tampilan</h2>
-
-        {/* Theme */}
-        <p className="text-sm font-medium text-[var(--text-primary)] mb-2">Tema</p>
-        <div className="flex gap-1 bg-[var(--surface-2)] rounded-xl p-1 mb-4">
-          {(['system', 'light', 'dark'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => handleThemeChange(t)}
-              className={[
-                'flex-1 py-2 rounded-lg text-xs font-medium transition-fast',
-                theme === t ? 'bg-[var(--surface)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-muted)]',
-              ].join(' ')}
-              aria-pressed={theme === t}
-            >
-              {t === 'system' ? 'Sistem' : t === 'light' ? 'Terang' : 'Gelap'}
-            </button>
-          ))}
-        </div>
-
-        {/* Accent color */}
-        <p className="text-sm font-medium text-[var(--text-primary)] mb-2">Warna Utama</p>
-        <div className="flex gap-2">
-          {ACCENT_COLORS.map((c) => (
-            <button
-              key={c}
-              onClick={() => handleAccentChange(c)}
-              className={[
-                'w-9 h-9 rounded-full transition-fast focus-visible:ring-2 focus-visible:ring-offset-2',
-                accentColor === c ? 'scale-110 ring-2 ring-offset-2 ring-[var(--primary)]' : 'opacity-70 hover:opacity-100',
-              ].join(' ')}
-              style={{ backgroundColor: ACCENT_COLOR_INFO[c as AccentColor].hsl }}
-              aria-label={ACCENT_COLOR_INFO[c as AccentColor].label}
-              aria-pressed={accentColor === c}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* === Language === */}
-      <section className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4 mb-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-3">Bahasa</h2>
-        <div className="flex gap-1 bg-[var(--surface-2)] rounded-xl p-1">
-          {(['id', 'en'] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => handleLanguageChange(l)}
-              className={[
-                'flex-1 py-2 rounded-lg text-sm font-medium transition-fast',
-                language === l ? 'bg-[var(--surface)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-muted)]',
-              ].join(' ')}
-              aria-pressed={language === l}
-            >
-              {l === 'id' ? 'Bahasa Indonesia' : 'English'}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* === Data === */}
-      <section className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4 mb-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-3">Data</h2>
-
-        {/* Backup */}
-        <div className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)]">
-          <div>
-            <p className="text-sm font-medium text-[var(--text-primary)]">Backup Data</p>
-            <p className="text-xs text-[var(--text-muted)]">Unduh semua data sebagai file JSON.</p>
           </div>
-          <Button size="sm" variant="secondary" onClick={handleBackup} loading={backingUp}>
-            Backup
-          </Button>
         </div>
+      </Modal>
 
-        {/* Restore */}
-        <div className="flex items-center justify-between py-2">
-          <div>
-            <p className="text-sm font-medium text-[var(--text-primary)]">Pulihkan Data</p>
-            <p className="text-xs text-[var(--text-muted)]">Pulihkan dari file backup JSON.</p>
-          </div>
-          <label className="cursor-pointer">
-            <input type="file" accept=".json" className="sr-only" onChange={handleRestoreFileSelect} />
-            <span className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-[10px] bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-2)] transition-fast min-h-9">
-              Pilih File
-            </span>
-          </label>
-        </div>
-      </section>
-
-      {/* === Danger Zone === */}
-      <section className="bg-[var(--surface)] rounded-2xl border border-[var(--danger)] border-opacity-40 p-4 mb-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--danger)] mb-3">Zona Bahaya</h2>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-[var(--text-primary)]">Hapus Semua Data</p>
-            <p className="text-xs text-[var(--text-muted)]">Hapus semua transaksi dan rekening secara permanen.</p>
-          </div>
-          <Button size="sm" variant="danger" onClick={() => setShowDeleteDialog(true)}>
-            Hapus
-          </Button>
-        </div>
-      </section>
-
-      {/* Logout */}
-      <Button
-        fullWidth
-        variant="secondary"
-        onClick={() => setShowLogoutDialog(true)}
-        className="text-[var(--danger)] border-[var(--danger)] hover:bg-[var(--danger-light)]"
-      >
-        Keluar
-      </Button>
-
-      {/* === Dialogs === */}
-      {/* Category Modal (Add / Edit) */}
+      {/* --- Add / Edit Category Form Modal --- */}
       <Modal
-        isOpen={showCategoryModal}
+        isOpen={showCategoryFormModal}
         onClose={() => {
-          setShowCategoryModal(false)
+          setShowCategoryFormModal(false)
           setEditingCategory(null)
         }}
         title={editingCategory ? 'Edit Kategori' : 'Tambah Kategori'}
       >
         <CategoryForm
           category={editingCategory}
-          defaultType={categoryType}
+          defaultType={categoryTab}
           onSuccess={() => {
-            setShowCategoryModal(false)
+            setShowCategoryFormModal(false)
             setEditingCategory(null)
             loadCategories()
           }}
           onCancel={() => {
-            setShowCategoryModal(false)
+            setShowCategoryFormModal(false)
             setEditingCategory(null)
           }}
         />
       </Modal>
 
-      {/* Delete Category Confirm Dialog */}
+      {/* --- Delete Category Confirm Dialog --- */}
       <ConfirmDialog
         isOpen={!!deletingCategory}
         title="Hapus Kategori?"
@@ -601,7 +806,7 @@ export function SettingsPage() {
         loading={deletingCategoryLoading}
       />
 
-      {/* Logout confirm */}
+      {/* --- Logout Confirm Dialog --- */}
       <ConfirmDialog
         isOpen={showLogoutDialog}
         title="Keluar dari akun?"
@@ -614,14 +819,18 @@ export function SettingsPage() {
         loading={loggingOut}
       />
 
-      {/* Restore preview dialog */}
+      {/* --- Restore Preview Dialog --- */}
       <ConfirmDialog
         isOpen={showRestoreDialog}
         title="Pulihkan Data"
         confirmLabel="Pulihkan"
         confirmVariant="primary"
         onConfirm={handleRestoreConfirm}
-        onCancel={() => { setShowRestoreDialog(false); setRestorePreview(null); setRestoreData(null) }}
+        onCancel={() => {
+          setShowRestoreDialog(false)
+          setRestorePreview(null)
+          setRestoreData(null)
+        }}
         loading={restoring}
       >
         {restorePreview && (
@@ -629,13 +838,16 @@ export function SettingsPage() {
             <p className="text-[var(--text-primary)] font-medium mb-2">Preview Backup</p>
             <div className="flex flex-col gap-1 text-[var(--text-secondary)]">
               <div className="flex justify-between">
-                <span>Rekening</span><span className="font-medium">{restorePreview.accountCount}</span>
+                <span>Rekening</span>
+                <span className="font-medium">{restorePreview.accountCount}</span>
               </div>
               <div className="flex justify-between">
-                <span>Transaksi</span><span className="font-medium">{restorePreview.transactionCount}</span>
+                <span>Transaksi</span>
+                <span className="font-medium">{restorePreview.transactionCount}</span>
               </div>
               <div className="flex justify-between">
-                <span>Kategori</span><span className="font-medium">{restorePreview.categoryCount}</span>
+                <span>Kategori</span>
+                <span className="font-medium">{restorePreview.categoryCount}</span>
               </div>
             </div>
             <p className="text-xs text-[var(--text-muted)] mt-2">
@@ -645,7 +857,7 @@ export function SettingsPage() {
         )}
       </ConfirmDialog>
 
-      {/* Delete all dialog */}
+      {/* --- Delete All Data Confirm Dialog --- */}
       <ConfirmDialog
         isOpen={showDeleteDialog}
         title="Hapus Semua Data?"
@@ -653,7 +865,10 @@ export function SettingsPage() {
         confirmLabel="Hapus Semua Data"
         confirmVariant="danger"
         onConfirm={handleDeleteAll}
-        onCancel={() => { setShowDeleteDialog(false); setDeleteConfirmText('') }}
+        onCancel={() => {
+          setShowDeleteDialog(false)
+          setDeleteConfirmText('')
+        }}
         loading={deleting}
       >
         <Input
@@ -666,3 +881,4 @@ export function SettingsPage() {
     </div>
   )
 }
+
