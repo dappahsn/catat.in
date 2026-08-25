@@ -478,7 +478,7 @@ export function SettingsPage() {
                 className="w-full p-4 sm:p-4.5 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors disabled:opacity-60"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-100 dark:bg-[#22242a] text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
                     <CloudUpload size={20} />
                   </div>
                   <div className="min-w-0">
@@ -490,7 +490,7 @@ export function SettingsPage() {
                     </p>
                   </div>
                 </div>
-                <span className="text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                <span className="text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#22242a] text-slate-700 dark:text-slate-300">
                   {t('backup.button_short')}
                 </span>
               </button>
@@ -504,7 +504,7 @@ export function SettingsPage() {
                   onChange={handleRestoreFileSelect}
                 />
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-100 dark:bg-[#22242a] text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
                     <History size={20} />
                   </div>
                   <div className="min-w-0">
@@ -516,7 +516,7 @@ export function SettingsPage() {
                     </p>
                   </div>
                 </div>
-                <span className="text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                <span className="text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#22242a] text-slate-700 dark:text-slate-300">
                   {t('restore.button')}
                 </span>
               </label>

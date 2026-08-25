@@ -45,7 +45,7 @@ export function DesktopNavbar() {
 
   return (
     <header
-      className={`sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200/80 dark:border-slate-800 transition-colors ${
+      className={`sticky top-0 z-40 bg-white/95 dark:bg-[#0d0f12]/95 backdrop-blur border-b border-slate-200/80 dark:border-[#22242a] transition-colors ${
         isSettingsPage ? 'hidden md:block' : 'block'
       }`}
     >
@@ -88,7 +88,7 @@ export function DesktopNavbar() {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen((o) => !o)}
-            className="flex items-center gap-2 p-1 md:pr-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none"
+            className="flex items-center gap-2 p-1 md:pr-2 rounded-full hover:bg-slate-100 dark:hover:bg-[#22242a] transition-colors focus:outline-none"
             aria-expanded={dropdownOpen}
             aria-haspopup="menu"
             aria-label="Menu akun"
@@ -97,7 +97,7 @@ export function DesktopNavbar() {
               <img
                 src={avatarUrl}
                 alt={name}
-                className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-2xs"
+                className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-[#262930] shadow-2xs"
               />
             ) : (
               <div className="w-8 h-8 rounded-full bg-[#064e3b] dark:bg-emerald-700 flex items-center justify-center text-white font-bold text-xs shadow-2xs">
@@ -113,7 +113,7 @@ export function DesktopNavbar() {
           {dropdownOpen && (
             <div
               role="menu"
-              className="absolute right-0 mt-2 w-52 bg-white dark:bg-[var(--surface)] border border-slate-200 dark:border-[var(--border)] rounded-2xl shadow-xl py-1.5 z-50 divide-y divide-slate-100 dark:divide-slate-800"
+              className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#17181c] border border-slate-200 dark:border-[#262930] rounded-2xl shadow-xl py-1.5 z-50 divide-y divide-slate-100 dark:divide-[#22242a]"
             >
               <div className="px-4 py-2.5">
                 <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{name}</p>
@@ -123,7 +123,7 @@ export function DesktopNavbar() {
                 <NavLink
                   to="/settings"
                   onClick={() => setDropdownOpen(false)}
-                  className="flex items-center gap-2.5 w-full px-4 py-2 text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  className="flex items-center gap-2.5 w-full px-4 py-2 text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#22242a] transition-colors"
                 >
                   <Settings size={15} />
                   {t('nav.settings')}

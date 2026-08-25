@@ -65,7 +65,7 @@ export function TransactionList({
       {groups.map(({ date, items }) => (
         <div key={date}>
           {/* Group Header with Title on Left & Short Date on Right */}
-          <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-2 mb-3">
+          <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-[#22242a] pb-2 mb-3">
             <h2 className="font-bold text-[15px] sm:text-base text-slate-900 dark:text-white">
               {getGroupTitle(date)}
             </h2>
@@ -75,7 +75,7 @@ export function TransactionList({
           </div>
 
           {/* Group Items Card */}
-          <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] overflow-hidden shadow-2xs divide-y divide-slate-100 dark:divide-slate-800/80">
+          <div className="bg-white dark:bg-[var(--surface)] rounded-2xl border border-slate-200/80 dark:border-[var(--border)] overflow-hidden shadow-2xs divide-y divide-slate-100 dark:divide-[#22242a]">
             {items.map((item) => (
               <TransactionItem
                 key={item.id}

@@ -41,9 +41,9 @@ export function LoginPage() {
   return (
     <div className="w-full max-w-[380px] sm:max-w-[430px] flex flex-col items-center">
       {/* Main Card */}
-      <div className="w-full bg-white dark:bg-[var(--surface)] rounded-[32px] sm:rounded-[36px] p-8 sm:p-11 text-center border border-slate-100 dark:border-[var(--border)] shadow-[0_2px_18px_rgba(0,0,0,0.03)] dark:shadow-none flex flex-col items-center">
+      <div className="w-full bg-white dark:bg-[#17181c] rounded-[32px] sm:rounded-[36px] p-8 sm:p-11 text-center border border-slate-100 dark:border-[#262930] shadow-[0_2px_18px_rgba(0,0,0,0.03)] dark:shadow-none flex flex-col items-center">
         {/* Logo Circle Badge */}
-        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white dark:bg-slate-800/90 border-[7px] sm:border-[8px] border-[#f0f2f5] dark:border-slate-800 flex items-center justify-center mb-6 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white dark:bg-[#22242a] border-[7px] sm:border-[8px] border-[#f0f2f5] dark:border-[#1d1f24] flex items-center justify-center mb-6 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
           <img
             src="/icons/logo-text.png"
             alt="catat.in"
@@ -52,7 +52,7 @@ export function LoginPage() {
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#063d35] dark:text-emerald-400 tracking-tight mb-3">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#063d35] dark:text-[#5eead4] tracking-tight mb-3">
           catat.in
         </h1>
 
@@ -98,7 +98,7 @@ export function LoginPage() {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={signingIn || loading}
-          className="w-full h-12 sm:h-13 px-6 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-900 dark:text-white font-medium text-sm sm:text-base flex items-center justify-center gap-3 transition-all duration-150 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow"
+          className="w-full h-12 sm:h-13 px-6 rounded-full border border-slate-300 dark:border-[#262930] bg-white dark:bg-[#22242a] hover:bg-slate-50 dark:hover:bg-[#2c3038] text-slate-900 dark:text-white font-medium text-sm sm:text-base flex items-center justify-center gap-3 transition-all duration-150 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow"
         >
           {signingIn || loading ? (
             <>
