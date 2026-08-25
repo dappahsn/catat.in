@@ -1,20 +1,20 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Edit2, Trash2 } from 'lucide-react'
-import { getAccountBalance, getAccountMonthlyStats, deleteAccount, getAccounts } from '@/services/accounts.service'
-import { getAccountTransactions } from '@/services/transactions.service'
-import type { Account } from '@/types/account'
-import type { Transaction } from '@/types/transaction'
-import { AccountForm } from '@/components/accounts/AccountForm'
+import { getAccountById, deleteAccount } from '@/services/accounts.service'
+import { getTransactions } from '@/services/transactions.service'
+import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/contexts/ToastContext'
+import { useI18n } from '@/contexts/I18nContext'
 import { TransactionItem } from '@/components/transactions/TransactionItem'
+import { AccountForm } from '@/components/accounts/AccountForm'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Button } from '@/components/ui/Button'
-import { Skeleton, TransactionSkeleton } from '@/components/ui/Skeleton'
 import { formatCurrency } from '@/utils/currency'
-import { useToast } from '@/contexts/ToastContext'
-import { useAuth } from '@/contexts/AuthContext'
-import { useI18n } from '@/contexts/I18nContext'
+import { getMonthStartString, getMonthEndString } from '@/utils/date'
+import type { Account } from '@/types/account'
+import type { Transaction } from '@/types/transaction'
 import type { TranslationKey } from '@/locales/id'
 
 export function AccountDetailPage() {
@@ -28,9 +28,9 @@ export function AccountDetailPage() {
   const [balance, setBalance] = useState(0)
   const [monthlyStats, setMonthlyStats] = useState({ monthlyIncome: 0, monthlyExpense: 0 })
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(false)
   const [page, setPage] = useState(0)
-  const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -40,35 +40,44 @@ export function AccountDetailPage() {
     if (!id || !user) return
     setLoading(true)
     try {
-      const [accounts, bal, stats, { data: txs, hasMore: more }] = await Promise.all([
-        getAccounts(user.id),
-        getAccountBalance(id),
-        getAccountMonthlyStats(id, new Date().getFullYear(), new Date().getMonth() + 1),
-        getAccountTransactions(id, 0),
-      ])
-      const found = accounts.find((a) => a.id === id)
-      setAccount(found ?? null)
-      setBalance(bal)
-      setMonthlyStats(stats)
-      setTransactions(txs)
-      setHasMore(more)
+      const data = await getAccountById(id, user.id)
+      if (!data) {
+        showToast(language === 'en' ? 'Account not found.' : 'Rekening tidak ditemukan.', 'error')
+        navigate('/accounts', { replace: true })
+        return
+      }
+      setAccount(data.account)
+      setBalance(data.currentBalance)
+      setMonthlyStats({ monthlyIncome: data.monthlyIncome, monthlyExpense: data.monthlyExpense })
+
+      const txs = await getTransactions(user.id, {
+        accountId: id,
+        startDate: getMonthStartString(),
+        endDate: getMonthEndString(),
+      }, 0)
+      setTransactions(txs.data)
+      setHasMore(txs.hasMore)
       setPage(0)
     } catch {
       showToast(t('common.failed_load'), 'error')
     } finally {
       setLoading(false)
     }
-  }, [id, user, showToast, t])
+  }, [id, user, navigate, showToast, t, language])
 
   useEffect(() => { load() }, [load])
 
   const loadMore = async () => {
-    if (!id) return
+    if (!id || !user) return
     const nextPage = page + 1
     setLoadingMore(true)
-    const { data, hasMore: more } = await getAccountTransactions(id, nextPage)
-    setTransactions((prev) => [...prev, ...data])
-    setHasMore(more)
+    const txs = await getTransactions(user.id, {
+      accountId: id,
+      startDate: getMonthStartString(),
+      endDate: getMonthEndString(),
+    }, nextPage)
+    setTransactions((prev) => [...prev, ...txs.data])
+    setHasMore(txs.hasMore)
     setPage(nextPage)
     setLoadingMore(false)
   }
@@ -80,12 +89,8 @@ export function AccountDetailPage() {
       await deleteAccount(id)
       showToast(language === 'en' ? 'Account deleted successfully.' : 'Rekening berhasil dihapus.', 'success')
       navigate('/accounts', { replace: true })
-    } catch (err: unknown) {
-      if (err instanceof Error && err.message === 'ACCOUNT_HAS_TRANSACTIONS') {
-        showToast(t('account.delete_has_transactions'), 'error')
-      } else {
-        showToast(t('common.error'), 'error')
-      }
+    } catch {
+      showToast(language === 'en' ? 'Failed to delete account.' : 'Gagal menghapus rekening.', 'error')
     } finally {
       setDeleting(false)
       setShowDeleteDialog(false)
@@ -94,88 +99,89 @@ export function AccountDetailPage() {
 
   if (loading) {
     return (
-      <div className="px-4 py-5">
-        <div className="flex items-center gap-3 mb-5">
-          <Skeleton className="w-8 h-8 rounded-full" />
-          <Skeleton className="h-6 w-40" />
-        </div>
-        <Skeleton className="h-28 rounded-2xl mb-4" />
-        <div className="flex flex-col gap-2">
-          {[1, 2, 3].map((i) => <TransactionSkeleton key={i} />)}
+      <div className="w-full max-w-md md:max-w-3xl lg:max-w-4xl mx-auto px-4 md:px-0 py-4 sm:py-6">
+        <div className="h-8 w-48 skeleton rounded-xl mb-4" />
+        <div className="h-32 skeleton rounded-2xl mb-4" />
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="h-20 skeleton rounded-xl" />
+          <div className="h-20 skeleton rounded-xl" />
         </div>
       </div>
     )
   }
 
-  if (!account) {
-    return (
-      <div className="px-4 py-8 text-center">
-        <p className="text-[var(--text-secondary)]">{language === 'en' ? 'Account not found.' : 'Rekening tidak ditemukan.'}</p>
-        <Button variant="ghost" onClick={() => navigate('/accounts')} className="mt-2">{t('common.back')}</Button>
-      </div>
-    )
-  }
+  if (!account) return null
 
   const typeKey = `account.type.${account.type}` as TranslationKey
 
   return (
-    <div className="px-4 py-5">
+    <div className="w-full max-w-md md:max-w-3xl lg:max-w-4xl mx-auto px-4 md:px-0 py-4 sm:py-6 pb-24">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <button
           onClick={() => navigate('/accounts')}
-          className="p-2 rounded-xl hover:bg-[var(--surface-2)] transition-fast"
+          className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-[#22242a] text-slate-700 dark:text-slate-300 transition-colors focus:outline-none"
           aria-label={t('common.back')}
         >
-          <ArrowLeft size={20} className="text-[var(--text-primary)]" />
+          <ArrowLeft size={20} className="text-slate-900 dark:text-white" />
         </button>
-        <div className="flex-1">
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">{account.name}</h1>
-          <p className="text-xs text-[var(--text-muted)]">{t(typeKey)}</p>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg font-bold text-slate-900 dark:text-white truncate">{account.name}</h1>
+          <p className="text-xs text-slate-400 dark:text-slate-500 font-medium capitalize">{t(typeKey)}</p>
         </div>
-        <button onClick={() => setShowEditSheet(true)} className="p-2 rounded-xl hover:bg-[var(--surface-2)] transition-fast" aria-label={t('account.edit')}>
-          <Edit2 size={18} className="text-[var(--text-secondary)]" />
+        <button
+          onClick={() => setShowEditSheet(true)}
+          className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-[#22242a] text-slate-600 dark:text-slate-300 transition-colors"
+          aria-label={t('account.edit')}
+        >
+          <Edit2 size={18} />
         </button>
-        <button onClick={() => setShowDeleteDialog(true)} className="p-2 rounded-xl hover:bg-[var(--danger-light)] transition-fast" aria-label={t('account.delete')}>
-          <Trash2 size={18} className="text-[var(--danger)]" />
+        <button
+          onClick={() => setShowDeleteDialog(true)}
+          className="p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 transition-colors"
+          aria-label={t('account.delete')}
+        >
+          <Trash2 size={18} />
         </button>
       </div>
 
-      {/* Balance card */}
-      <div className="bg-[var(--primary)] rounded-2xl p-5 text-white mb-4">
-        <p className="text-sm opacity-80 mb-1">{t('account.current_balance')}</p>
-        <p className="text-3xl font-bold tabular-nums">{formatCurrency(balance)}</p>
+      {/* Balance card (Deep green in light mode, Dark charcoal in dark mode) */}
+      <div className="bg-[#064e3b] dark:bg-[#17181c] border border-transparent dark:border-[#262930] rounded-[24px] p-6 text-white mb-4 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-wider text-[#86efac] mb-1.5">{t('account.current_balance')}</p>
+        <p className="text-2xl sm:text-3xl font-extrabold text-white dark:text-[#5eead4] tabular-nums tracking-tight">{formatCurrency(balance)}</p>
       </div>
 
       {/* Monthly stats */}
       <div className="grid grid-cols-2 gap-3 mb-5">
-        <div className="bg-[var(--surface)] rounded-xl p-4 border border-[var(--border)]">
-          <p className="text-xs text-[var(--text-muted)] mb-1">{t('account.monthly_income')}</p>
-          <p className="font-semibold text-sm text-[var(--success-foreground)] tabular-nums">
+        <div className="bg-white dark:bg-[#17181c] rounded-2xl p-4 border border-slate-200/80 dark:border-[#262930] shadow-2xs">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('account.monthly_income')}</p>
+          <p className="font-bold text-sm sm:text-base text-[#10b981] dark:text-[#4ade80] tabular-nums">
             +{formatCurrency(monthlyStats.monthlyIncome)}
           </p>
         </div>
-        <div className="bg-[var(--surface)] rounded-xl p-4 border border-[var(--border)]">
-          <p className="text-xs text-[var(--text-muted)] mb-1">{t('account.monthly_expense')}</p>
-          <p className="font-semibold text-sm text-[var(--danger-foreground)] tabular-nums">
+        <div className="bg-white dark:bg-[#17181c] rounded-2xl p-4 border border-slate-200/80 dark:border-[#262930] shadow-2xs">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('account.monthly_expense')}</p>
+          <p className="font-bold text-sm sm:text-base text-[#ef4444] dark:text-[#f87171] tabular-nums">
             -{formatCurrency(monthlyStats.monthlyExpense)}
           </p>
         </div>
       </div>
 
       {/* Transaction history */}
-      <h2 className="font-semibold text-sm text-[var(--text-primary)] mb-3">{t('transaction.history')}</h2>
+      <h2 className="font-bold text-base text-slate-900 dark:text-white mb-3">{t('transaction.history')}</h2>
       {transactions.length === 0 ? (
-        <p className="text-sm text-[var(--text-muted)] py-4 text-center">{t('transaction.empty')}</p>
+        <div className="bg-white dark:bg-[#17181c] rounded-2xl border border-slate-200/80 dark:border-[#262930] p-8 text-center shadow-2xs">
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('transaction.empty')}</p>
+        </div>
       ) : (
-        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] overflow-hidden">
-          {transactions.map((tx, i) => (
-            <div key={tx.id} className={i < transactions.length - 1 ? 'border-b border-[var(--border-subtle)]' : ''}>
-              <TransactionItem
-                transaction={tx}
-                onPress={() => navigate(`/transactions/${tx.id}`)}
-              />
-            </div>
+        <div className="bg-white dark:bg-[#17181c] rounded-2xl border border-slate-200/80 dark:border-[#262930] overflow-hidden shadow-2xs divide-y divide-slate-100 dark:divide-[#22242a]">
+          {transactions.map((tx) => (
+            <TransactionItem
+              key={tx.id}
+              transaction={tx}
+              showDate
+              onPress={() => navigate(`/transactions/${tx.id}`)}
+            />
           ))}
           {hasMore && (
             <div className="p-3 text-center">

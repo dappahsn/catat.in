@@ -22,12 +22,18 @@ export async function getTransactions(
   const from = page * TRANSACTIONS_PER_PAGE
   const to = from + TRANSACTIONS_PER_PAGE - 1
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from('transactions')
     .select(SELECT_FIELDS, { count: 'exact' })
     .eq('user_id', userId)
     .gte('transaction_date', filter.startDate)
     .lte('transaction_date', filter.endDate)
+
+  if (filter.accountId) {
+    query = query.or(`account_id.eq.${filter.accountId},destination_account_id.eq.${filter.accountId}`)
+  }
+
+  const { data, error, count } = await query
     .order('transaction_date', { ascending: false })
     .order('created_at', { ascending: false })
     .range(from, to)

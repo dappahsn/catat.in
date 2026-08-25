@@ -16,6 +16,31 @@ export async function getAccounts(userId: string): Promise<Account[]> {
 }
 
 /**
+ * Get single account with computed balance & monthly stats.
+ */
+export async function getAccountById(accountId: string, userId: string) {
+  const { data: account, error } = await supabase
+    .from('accounts')
+    .select('id, user_id, name, type, icon, initial_balance, created_at, updated_at')
+    .eq('id', accountId)
+    .eq('user_id', userId)
+    .single()
+
+  if (error || !account) return null
+
+  const currentBalance = await getAccountBalance(accountId)
+  const now = new Date()
+  const stats = await getAccountMonthlyStats(accountId, now.getFullYear(), now.getMonth() + 1)
+
+  return {
+    account,
+    currentBalance,
+    monthlyIncome: stats.monthlyIncome,
+    monthlyExpense: stats.monthlyExpense,
+  }
+}
+
+/**
  * Compute the current balance for a single account.
  * Balance = initial_balance + income - expense + incoming_transfer - outgoing_transfer
  */

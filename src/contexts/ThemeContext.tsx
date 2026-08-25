@@ -28,7 +28,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem('catatin_theme')
     return (saved === 'dark' || saved === 'light') ? saved : 'light'
   })
-  const [accentColor, setAccentColorState] = useState<AccentColor>('blue')
+  const [accentColor, setAccentColorState] = useState<AccentColor>('green')
 
   useEffect(() => {
     applyTheme(theme)
@@ -58,7 +58,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useTheme(): ThemeContextValue {
-  const ctx = useContext(ThemeContext)
-  if (!ctx) throw new Error('useTheme must be used within ThemeProvider')
-  return ctx
+  const context = useContext(ThemeContext)
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider')
+  }
+  return context
 }

@@ -33,9 +33,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }
 
   const bgMap: Record<ToastType, string> = {
-    success: 'bg-green-600',
-    error: 'bg-red-600',
-    info: 'bg-blue-600',
+    success: 'bg-[#064e3b] dark:bg-[#133827]',
+    error: 'bg-red-600 dark:bg-[#3b181a]',
+    info: 'bg-[#064e3b] dark:bg-[#133827]',
   }
 
   return (
